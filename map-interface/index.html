@@ -1,48 +1,31 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Interactive Lab Map</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <style>
-        body, html { margin: 0; padding: 0; height: 100%; }
-        #map { height: 100vh; width: 100%; background: #eee; }
-    </style>
-</head>
-<body>
-    <div id="map"></div>
-    <script>
-        // 1. Setup the coordinate system
-        var map = L.map('map', { crs: L.CRS.Simple, minZoom: -1 });
+<script>
+    // 1. Setup Map
+    var map = L.map('map', { crs: L.CRS.Simple, minZoom: -1 });
+    var bounds = [[0,0], [1000, 2000]]; // Adjusted for your wide layout
+    var image = L.imageOverlay('Cernak lab map.svg', bounds).addTo(map);
+    map.fitBounds(bounds);
 
-        // 2. Define dimensions (1080 height, 1920 width)
-        var bounds = [[0,0], [1080,1920]]; 
-        var image = L.imageOverlay('Cernak lab map.svg', bounds).addTo(map);
-        map.fitBounds(bounds);
+    // 2. The "Isco" Marker with Dynamic Status
+    // Based on your image, let's try these coordinates for Room 3606
+    var isco3606 = L.marker([400, 300]).addTo(map);
 
-        // 3. Add a "Pin" for the Isco
-        // Note: I renamed the popup target to match the variable 'isco'
-        var isco = L.marker([500, 300]).addTo(map);
-        
-        isco.bindPopup(`
-            <div style="text-align: center;">
-                <h3>Isco Flash Chromatography</h3>
-                <p>Status: <span style="color: green;">● Active</span></p>
-                <a href="../instruments/Isco.md" target="_blank">📖 View Manual & History</a><br>
-                <a href="https://chat.openai.com" target="_blank">🤖 Ask AI about this Machine</a>
-            </div>
-        `);
+    // Define the status color (we will change this to 'red' later)
+    var iscoStatus = "green"; 
 
-        // 4. COORDINATE FINDER (Now inside the script tag)
-        var popup = L.popup();
-        function onMapClick(e) {
-            popup
-                .setLatLng(e.latlng)
-                .setContent("Coordinates: " + e.latlng.lat.toFixed(0) + ", " + e.latlng.lng.toFixed(0))
-                .openOn(map);
-        }
-        map.on('click', onMapClick);
+    isco3606.bindPopup(`
+        <div style="text-align: center; font-family: sans-serif;">
+            <h3>Isco: Room 3606</h3>
+            <p>Status: <span style="color: ${iscoStatus};">● ${iscoStatus.toUpperCase()}</span></p>
+            <hr>
+            <a href="../instruments/Isco.md">📖 View Manual</a><br><br>
+            <button onclick="changeStatus()">Report Issue (Turn Red)</button>
+        </div>
+    `);
 
-    </script>
-</body>
-</html>
+    // 3. The Coordinate Finder (Crucial for fixing your pin placement)
+    map.on('click', function(e) {
+        L.popup().setLatLng(e.latlng)
+            .setContent("Copy these numbers: [" + e.latlng.lat.toFixed(0) + ", " + e.latlng.lng.toFixed(0) + "]")
+            .openOn(map);
+    });
+</script>
