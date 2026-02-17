@@ -6,44 +6,45 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
     <style>
-        body, html { margin: 0; padding: 0; height: 100%; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-        #map { height: 100vh; width: 100%; background: #f8f9fa; }
+        body, html { margin: 0; padding: 0; height: 100%; font-family: sans-serif; }
+        #map { height: 100vh; width: 100%; background: #fff; }
         
-        /* Information Panel */
-        .info-panel { line-height: 1.4; color: #212529; padding: 5px; }
-        .status-badge { padding: 4px 12px; border-radius: 50px; color: white; font-weight: 800; font-size: 11px; letter-spacing: 0.5px; }
-        
-        /* High-Visibility Buttons */
-        .btn { 
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 12px; 
-            margin: 10px 0; 
-            border-radius: 8px; 
-            text-decoration: none !important; 
-            color: #ffffff !important; /* Pure white text */
-            font-weight: 700; 
-            font-size: 13px;
-            letter-spacing: 0.3px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-            transition: all 0.2s ease;
+        /* Blinking Animation */
+        @keyframes blink {
+            0% { opacity: 1; stroke-width: 3; }
+            50% { opacity: 0.3; stroke-width: 8; }
+            100% { opacity: 1; stroke-width: 3; }
         }
-        .btn:hover { filter: brightness(1.2); transform: translateY(-1px); }
-        .btn-emoji { margin-right: 8px; font-size: 16px; }
+        .blinking { animation: blink 1.5s infinite; }
 
-        /* Deep, Saturated Colors for Maximum Contrast */
-        .btn-manual  { background: #086d82; } /* Deep Teal */
-        .btn-form    { background: #1e7e34; } /* Forest Green */
-        .btn-history { background: #0056b3; } /* Royal Blue */
-        .btn-status  { background: #343a40; } /* Charcoal Gray */
-        .btn-ai      { background: #512da8; } /* Deep Indigo */
+        /* Information Panel Styling */
+        .info-panel { line-height: 1.4; color: #000; }
+        .status-badge { padding: 4px 10px; border-radius: 4px; color: white; font-weight: bold; font-size: 11px; }
         
-        hr { border: 0; border-top: 1px solid #dee2e6; margin: 15px 0; }
+        /* Button Styling */
+        .btn { 
+            display: block; text-align: center; padding: 12px; margin: 10px 0; border-radius: 6px; 
+            text-decoration: none !important; color: #ffffff !important; 
+            font-weight: 800; font-size: 13px; box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        .btn-manual  { background: #006064; }
+        .btn-form    { background: #1b5e20; }
+        .btn-history { background: #0d47a1; }
+        .btn-status  { background: #212121; }
+        .btn-ai      { background: #4a148c; }
+
+        /* Coordinate Tool Styling */
+        #coord-tool {
+            position: absolute; top: 10px; right: 10px; z-index: 1000;
+            background: white; padding: 10px; border: 2px solid #333; border-radius: 8px;
+            font-weight: bold; cursor: pointer;
+        }
     </style>
 </head>
 <body>
+    <div id="coord-tool" onclick="toggleCoordFinder()">📍 Start Aligning Dots</div>
     <div id="map"></div>
+
     <script>
         var map = L.map('map', { crs: L.CRS.Simple, minZoom: -1 });
         var bounds = [[0,0], [1080,1920]];
@@ -52,14 +53,30 @@
 
         var sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQr85kdlDb92TZR_iUJTT3Plry6-0Bc4n3di7fTQvT1A6cMRcPcVe-TIA8WCqJRa15udjsAeG9jdoi0/pub?output=csv';
         var formUrl  = 'https://docs.google.com/forms/d/e/1FAIpQLSfvjJTJ1nLW-Eb3ZoEL_wix3h7kMm0SoqeJ5ndFaYjvagW-_Q/viewform?usp=dialog';
-        var logViewUrl = 'https://docs.google.com/spreadsheets/d/10DsQ---R2owVXBIlj2bMnjH3kB05bFl69PxMVVlC4dU/edit?gid=607561719#gid=607561719';
+        var logViewUrl = 'https://docs.google.com/spreadsheets/d/10DsQ---R2owVXBIlj2bMnjH3kB05bFl69PxMVVlC4dU/edit#gid=1956041763';
         var editUrl = 'https://docs.google.com/spreadsheets/d/10DsQ---R2owVXBIlj2bMnjH3kB05bFl69PxMVVlC4dU/edit#gid=0';
         var manualUrl = 'PASTE_YOUR_GITHUB_MANUAL_URL_HERE';
+        
+        var aiLink = "https://gemini.google.com/app?prompt=" + encodeURIComponent("I am troubleshooting the Isco Flash in the Cernak Lab. Here are our logs...");
 
-        // Pre-written AI Prompt
-        var aiPrompt = encodeURIComponent("I am in the Cernak Lab troubleshooting our Isco Flash. I have the maintenance history logs and the manual. Based on current instrument status, what are the first three things I should check?");
-        var aiLink = "https://gemini.google.com/app?prompt=" + aiPrompt;
+        // --- Coordinate Finder Logic ---
+        var finderActive = false;
+        function toggleCoordFinder() {
+            finderActive = !finderActive;
+            document.getElementById('coord-tool').style.background = finderActive ? '#ffeb3b' : 'white';
+            document.getElementById('coord-tool').innerText = finderActive ? 'Click Map to get Coords' : '📍 Start Aligning Dots';
+        }
 
+        map.on('click', function(e) {
+            if (finderActive) {
+                var lat = Math.round(e.latlng.lat);
+                var lng = Math.round(e.latlng.lng);
+                alert("COORDINATES FOUND:\n\nUse this in your code: [" + lat + ", " + lng + "]");
+                console.log("Coords:", lat, lng);
+            }
+        });
+
+        // --- Load Data and Handle Blinking ---
         function loadIsco() {
             Papa.parse(sheetUrl, {
                 download: true,
@@ -70,27 +87,28 @@
                         var statusColor = isco.Status.trim().toLowerCase();
                         var steward = isco.Steward || "Unassigned";
 
-                        // Using coordinates from your map (3606 location)
+                        // Current coordinate is [400, 300]. Use the tool to find the exact spot!
                         var marker = L.circle([400, 300], {
                             radius: 35, 
                             fillColor: statusColor,
                             color: "#000",
-                            weight: 2.5,
-                            fillOpacity: 1
+                            weight: 3,
+                            fillOpacity: 1,
+                            className: 'blinking' // This triggers the CSS blink
                         }).addTo(map);
 
                         marker.bindPopup(`
-                            <div class="info-panel" style="width: 260px;">
-                                <h2 style="margin:0 0 10px 0; font-size: 22px; color: #000;">Isco Flash</h2>
-                                <p style="margin:8px 0;"><b>STATUS:</b> <span class="status-badge" style="background:${statusColor}">${statusColor.toUpperCase()}</span></p>
-                                <p style="margin:8px 0;"><b>STEWARD:</b> ${steward}</p>
+                            <div class="info-panel" style="width: 250px;">
+                                <h2 style="margin:0 0 10px 0;">Isco Flash</h2>
+                                <p><b>Status:</b> <span class="status-badge" style="background:${statusColor}">${statusColor.toUpperCase()}</span></p>
+                                <p><b>Steward:</b> ${steward}</p>
                                 <hr>
-                                <a href="${manualUrl}" class="btn btn-manual" target="_blank"><span class="btn-emoji">📖</span> VIEW MANUAL</a>
-                                <a href="${formUrl}" class="btn btn-form" target="_blank"><span class="btn-emoji">➕</span> ADD LOG ENTRY</a>
-                                <a href="${logViewUrl}" class="btn btn-history" target="_blank"><span class="btn-emoji">📜</span> VIEW HISTORY</a>
+                                <a href="${manualUrl}" class="btn btn-manual" target="_blank">📖 VIEW MANUAL</a>
+                                <a href="${formUrl}" class="btn btn-form" target="_blank">➕ ADD LOG ENTRY</a>
+                                <a href="${logViewUrl}" class="btn btn-history" target="_blank">📜 VIEW HISTORY LOG</a>
                                 <hr>
                                 <a href="${editUrl}" class="btn btn-status" target="_blank">CHANGE RED/GREEN</a>
-                                <a href="${aiLink}" class="btn btn-ai" target="_blank"><span class="btn-emoji">🤖</span> ASK AI ASSISTANT</a>
+                                <a href="${aiLink}" class="btn btn-ai" target="_blank">🤖 ASK AI ASSISTANT</a>
                             </div>
                         `);
                     }
