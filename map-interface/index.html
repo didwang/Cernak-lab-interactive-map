@@ -20,8 +20,18 @@
         map.fitBounds(bounds);
 
         // 3. Add a "Pin" for an instrument
-        var gcms = L.marker([500, 500]).addTo(map);
-        gcms.bindPopup("<b>GC-MS: Metabolomics</b><br><a href='../logs/gcms.md'>View History</a><br>Status: Active");
+        // Add a marker at the coordinates of your Isco
+        var isco = L.marker([500, 300]).addTo(map);
+        
+        // This creates the "Portal" to your documentation
+        gcms.bindPopup(`
+            <div style="text-align: center;">
+                <h3>GC-MS Metabolomics</h3>
+                <p>Status: <span style="color: green;">● Active</span></p>
+                <a href="../instruments/Isco.md" target="_blank">📖 View Manual & History</a><br>
+                <a href="https://chatgpt.com" target="_blank">🤖 Ask AI about this Machine</a>
+            </div>
+        `);
     </script>
 </body>
 </html>
