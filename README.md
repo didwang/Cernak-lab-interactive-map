@@ -22,19 +22,4 @@ graph TD
     click OP_LOG "/logs/opentrons.md" "Report Issue"
     click GC_LOG "/logs/gcms.md" "Find Solutions"
     click SYN_LOG "/logs/synthia.md" "Access Manual"
-
-block-beta
-  columns 4
-  subgraph Room_A: "Synthesis Room"
-    columns 2
-    Glovebox:2
-    Opentrons Schlenk_Line
-  end
-  subgraph Room_B: "Analysis"
-    columns 1
-    GC_MS
-    NMR
-  end
-  Space:2
-  Computer_Station:2
 ```
