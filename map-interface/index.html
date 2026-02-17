@@ -12,7 +12,7 @@
         .status-badge { padding: 4px 8px; border-radius: 12px; color: white; font-weight: bold; }
         .btn { display: block; text-align: center; padding: 10px; margin: 10px 0; border-radius: 5px; text-decoration: none; color: white; font-weight: bold; }
         .btn-status { background: #444; }
-        .btn-ai { background: #6f42c1; } /* Purple for AI */
+        .btn-ai { background: #6f42c1; }
     </style>
 </head>
 <body>
@@ -23,7 +23,8 @@
         L.imageOverlay('Cernak lab map.svg', bounds).addTo(map);
         map.fitBounds(bounds);
 
-        var sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQr85kdlDb92TZR_iUJTT3Plry6-0Bc4n3di7fTQvT1A6cMRcPcVe-TIA8WCqJRa15udjsAeG9jdoi0/pubhtml';
+        // USE THE LINK THAT ENDS IN output=csv
+        var sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQr85kdlDb92TZR_iUJTT3Plry6-0Bc4n3di7fTQvT1A6cMRcPcVe-TIA8WCqJRa15udjsAeG9jdoi0/pub?output=csv';
         var editUrl = 'https://docs.google.com/spreadsheets/d/10DsQ---R2owVXBIlj2bMnjH3kB05bFl69PxMVVlC4dU/edit?gid=0#gid=0';
 
         function loadIsco() {
@@ -31,32 +32,33 @@
                 download: true,
                 header: true,
                 complete: function(results) {
+                    // Find the row where Instrument is 'Isco'
                     var isco = results.data.find(row => row.Instrument === 'Isco');
+                    
                     if (isco) {
-                        var statusColor = isco.Status.toLowerCase();
+                        var statusColor = isco.Status.trim().toLowerCase();
                         
-                        // Create the Marker
-                        var marker = L.circleMarker([400, 300], {
-                            radius: 20,
+                        // L.circle uses map units (meters/pixels). 
+                        // It will grow and shrink as you zoom.
+                        var marker = L.circle([400, 300], {
+                            radius: 40, // Adjust this number until the circle is the right size
                             fillColor: statusColor,
                             color: "#000",
-                            weight: 3,
+                            weight: 2,
                             fillOpacity: 1
                         }).addTo(map);
 
-                        // Popup with Expertise Links
                         marker.bindPopup(`
                             <div class="info-panel" style="width: 250px;">
                                 <h2 style="margin-bottom:5px;">Isco Flash</h2>
                                 <p><b>Status:</b> <span class="status-badge" style="background:${statusColor}">${statusColor.toUpperCase()}</span></p>
-                                <p><b>Steward:</b> Dr. Cernak / [Lead Student Name]</p>
+                                <p><b>Steward:</b> Dr. Cernak</p>
                                 <hr>
                                 <b>Resources:</b>
                                 <ul style="padding-left:20px;">
                                     <li><a href="../instruments/isco-manual.pdf" target="_blank">PDF Manual</a></li>
                                     <li><a href="../instruments/isco-history.md" target="_blank">Maintenance History</a></li>
                                 </ul>
-                                
                                 <a href="${editUrl}" class="btn btn-status" target="_blank">Change Status (Red/Green)</a>
                                 <a href="https://gemini.google.com" class="btn btn-ai" target="_blank">🤖 Ask AI for Help</a>
                             </div>
@@ -66,6 +68,11 @@
             });
         }
         loadIsco();
+
+        // Keep this active while you set up so you can find new coordinates!
+        map.on('click', function(e) {
+            console.log("Clicked at: ", e.latlng);
+        });
     </script>
 </body>
 </html>
