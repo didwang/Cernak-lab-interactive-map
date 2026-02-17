@@ -1,35 +1,64 @@
-<script>
-    // 1. Setup Map
-    var map = L.map('map', { crs: L.CRS.Simple, minZoom: -1 });
-    var bounds = [[0,0], [1000, 2000]]; // Adjusted for your wide layout
-    var image = L.imageOverlay('Cernak lab map.svg', bounds).addTo(map);
-    map.fitBounds(bounds);
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Cernak Lab - Isco Monitor</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <style>
+        body, html { margin: 0; padding: 0; height: 100%; }
+        #map { height: 100vh; width: 100%; background: #fff; }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <script>
+        var map = L.map('map', { crs: L.CRS.Simple, minZoom: -1 });
+        var bounds = [[0,0], [1080,1920]];
+        L.imageOverlay('Cernak lab map.svg', bounds).addTo(map);
+        map.fitBounds(bounds);
 
-    // 2. The "Isco" Marker with Dynamic Status
-    // Based on your image, let's try these coordinates for Room 3606
-    var isco3606 = L.marker([400, 300]).addTo(map);
+        // 1. PASTE YOUR PUBLISHED CSV LINK HERE
+        var sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQr85kdlDb92TZR_iUJTT3Plry6-0Bc4n3di7fTQvT1A6cMRcPcVe-TIA8WCqJRa15udjsAeG9jdoi0/pub?output=csv';
 
-    // Define the status color (we will change this to 'red' later)
-    var iscoStatus = "green"; 
+        // 2. PASTE YOUR REGULAR EDITABLE SHEET LINK HERE
+        var editUrl = 'https://docs.google.com/spreadsheets/d/10DsQ---R2owVXBIlj2bMnjH3kB05bFl69PxMVVlC4dU/edit?gid=0#gid=0';
 
-    isco3606.bindPopup(`
-    <div style="text-align: center; font-family: sans-serif;">
-        <h3>Isco: Room 3606</h3>
-        <p>Status: <span id="isco-status-dot" style="color: green;">● ACTIVE</span></p>
-        <hr>
-        <a href="../instruments/Isco.md" target="_blank">📖 View Manual</a><br><br>
-        <a href="https://github.com/didwang/Cernak-lab-interactive-map/map-interface/issues/new?title=ISSUE:+Isco+3606&body=Describe+the+problem+here." 
-           target="_blank" 
-           style="background-color: #d73a49; color: white; padding: 5px 10px; text-decoration: none; border-radius: 4px;">
-           ⚠️ Report Issue
-        </a>
-    </div>
-`);
+        function loadIscoStatus() {
+            Papa.parse(sheetUrl, {
+                download: true,
+                header: true,
+                complete: function(results) {
+                    var iscoData = results.data.find(row => row.Instrument === 'Isco');
+                    
+                    if (iscoData) {
+                        // Coordinates: Replace these with your clicked coordinates
+                        var coords = [400, 300]; 
+                        
+                        var statusColor = iscoData.Status.toLowerCase();
 
-    // 3. The Coordinate Finder (Crucial for fixing your pin placement)
-    map.on('click', function(e) {
-        L.popup().setLatLng(e.latlng)
-            .setContent("Copy these numbers: [" + e.latlng.lat.toFixed(0) + ", " + e.latlng.lng.toFixed(0) + "]")
-            .openOn(map);
-    });
-</script>
+                        L.circleMarker(coords, {
+                            radius: 18,
+                            fillColor: statusColor,
+                            color: "#000",
+                            weight: 3,
+                            fillOpacity: 1
+                        }).addTo(map).bindPopup(`
+                            <div style="text-align: center; font-family: sans-serif;">
+                                <h2 style="margin:0;">Isco</h2>
+                                <p>Status: <b style="color: ${statusColor}; text-transform: uppercase;">${statusColor}</b></p>
+                                <hr>
+                                <a href="${editUrl}" target="_blank" style="display:inline-block; background:#000; color:#fff; padding:8px; text-decoration:none; border-radius:4px;">
+                                    Change Status
+                                </a>
+                            </div>
+                        `);
+                    }
+                }
+            });
+        }
+
+        loadIscoStatus();
+    </script>
+</body>
+</html>
