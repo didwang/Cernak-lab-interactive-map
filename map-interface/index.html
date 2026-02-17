@@ -5,45 +5,44 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
+        body, html { margin: 0; padding: 0; height: 100%; }
         #map { height: 100vh; width: 100%; background: #eee; }
     </style>
 </head>
 <body>
     <div id="map"></div>
     <script>
-        // 1. Setup the coordinate system (Simple XY instead of Lat/Long)
+        // 1. Setup the coordinate system
         var map = L.map('map', { crs: L.CRS.Simple, minZoom: -1 });
 
-        // 2. Define your image dimensions (adjust based on your actual image size)
+        // 2. Define dimensions (1080 height, 1920 width)
         var bounds = [[0,0], [1080,1920]]; 
         var image = L.imageOverlay('Cernak lab map.svg', bounds).addTo(map);
         map.fitBounds(bounds);
 
-        // 3. Add a "Pin" for an instrument
-        // Add a marker at the coordinates of your Isco
+        // 3. Add a "Pin" for the Isco
+        // Note: I renamed the popup target to match the variable 'isco'
         var isco = L.marker([500, 300]).addTo(map);
         
-        // This creates the "Portal" to your documentation
-        gcms.bindPopup(`
+        isco.bindPopup(`
             <div style="text-align: center;">
-                <h3>GC-MS Metabolomics</h3>
+                <h3>Isco Flash Chromatography</h3>
                 <p>Status: <span style="color: green;">● Active</span></p>
                 <a href="../instruments/Isco.md" target="_blank">📖 View Manual & History</a><br>
-                <a href="https://chatgpt.com" target="_blank">🤖 Ask AI about this Machine</a>
+                <a href="https://chat.openai.com" target="_blank">🤖 Ask AI about this Machine</a>
             </div>
         `);
+
+        // 4. COORDINATE FINDER (Now inside the script tag)
+        var popup = L.popup();
+        function onMapClick(e) {
+            popup
+                .setLatLng(e.latlng)
+                .setContent("Coordinates: " + e.latlng.lat.toFixed(0) + ", " + e.latlng.lng.toFixed(0))
+                .openOn(map);
+        }
+        map.on('click', onMapClick);
+
     </script>
 </body>
 </html>
-
-// This function pops up a box telling you the coordinates of where you click
-var popup = L.popup();
-
-function onMapClick(e) {
-    popup
-        .setLatLng(e.latlng)
-        .setContent("You clicked the map at " + e.latlng.toString())
-        .openOn(map);
-}
-
-map.on('click', onMapClick);
