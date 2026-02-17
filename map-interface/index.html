@@ -10,8 +10,12 @@
         #map { height: 100vh; width: 100%; background: #fff; }
         .info-panel { line-height: 1.4; font-size: 14px; }
         .status-badge { padding: 4px 8px; border-radius: 12px; color: white; font-weight: bold; font-size: 12px; }
-        .btn { display: block; text-align: center; padding: 8px; margin: 8px 0; border-radius: 5px; text-decoration: none; color: white; font-weight: bold; font-size: 13px; }
+        .btn { display: block; text-align: center; padding: 8px; margin: 8px 0; border-radius: 5px; text-decoration: none; color: white; font-weight: bold; font-size: 13px; transition: 0.2s; }
+        .btn:hover { opacity: 0.8; }
         .btn-status { background: #444; }
+        .btn-history { background: #007bff; }
+        .btn-form { background: #28a745; }
+        .btn-manual { background: #17a2b8; } /* Teal for Manual */
         .btn-ai { background: #6f42c1; }
         hr { border: 0; border-top: 1px solid #eee; margin: 10px 0; }
     </style>
@@ -19,26 +23,23 @@
 <body>
     <div id="map"></div>
     <script>
-        // 1. Initialize Map
         var map = L.map('map', { crs: L.CRS.Simple, minZoom: -1 });
         var bounds = [[0,0], [1080,1920]];
         L.imageOverlay('Cernak lab map.svg', bounds).addTo(map);
         map.fitBounds(bounds);
 
-        // 2. Configuration Links
-        // The CSV link (for the code to read)
+        // --- LINKS CONFIGURATION ---
         var sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQr85kdlDb92TZR_iUJTT3Plry6-0Bc4n3di7fTQvT1A6cMRcPcVe-TIA8WCqJRa15udjsAeG9jdoi0/pub?output=csv';
+        var formUrl  = 'https://docs.google.com/forms/d/e/1FAIpQLSfvjJTJ1nLW-Eb3ZoEL_wix3h7kMm0SoqeJ5ndFaYjvagW-_Q/viewform?usp=dialog';
         
-        // The Form link (to add new logs)
-        var formUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSfvjJTJ1nLW-Eb3ZoEL_wix3h7kMm0SoqeJ5ndFaYjvagW-_Q/viewform?usp=dialog';
+        // Link to the "Form Responses" tab in Google Sheets
+        var logViewUrl = 'https://docs.google.com/spreadsheets/d/10DsQ---R2owVXBIlj2bMnjH3kB05bFl69PxMVVlC4dU/edit#gid=YOUR_FORM_RESPONSES_GID';
         
-        // The View link (to see history - links to the edit page but it's the easiest for users)
-        var logViewUrl = 'https://docs.google.com/spreadsheets/d/10DsQ---R2owVXBIlj2bMnjH3kB05bFl69PxMVVlC4dU/edit#gid=0';
+        // Link to your manual in GitHub (e.g., https://github.com/user/repo/blob/main/manuals/isco.pdf)
+        var manualUrl = 'PASTE_YOUR_GITHUB_MANUAL_URL_HERE';
         
-        // The Edit link (specifically for toggling red/green status)
         var editUrl = 'https://docs.google.com/spreadsheets/d/10DsQ---R2owVXBIlj2bMnjH3kB05bFl69PxMVVlC4dU/edit?gid=0#gid=0';
 
-        // 3. Load Data
         function loadIsco() {
             Papa.parse(sheetUrl, {
                 download: true,
@@ -49,7 +50,6 @@
                         var statusColor = isco.Status.trim().toLowerCase();
                         var steward = isco.Steward || "Unassigned";
 
-                        // Using L.circle so it stays consistent ratio when zooming
                         var marker = L.circle([400, 300], {
                             radius: 35, 
                             fillColor: statusColor,
@@ -64,10 +64,11 @@
                                 <p><b>Status:</b> <span class="status-badge" style="background:${statusColor}">${statusColor.toUpperCase()}</span></p>
                                 <p><b>Steward:</b> ${steward}</p>
                                 <hr>
-                                <a href="${formUrl}" class="btn" style="background:#28a745;" target="_blank">➕ Add Maintenance Log</a>
-                                <a href="${logViewUrl}" class="btn" style="background:#007bff;" target="_blank">📜 View Full History</a>
+                                <a href="${manualUrl}" class="btn btn-manual" target="_blank">📖 View Manual (GitHub)</a>
+                                <a href="${formUrl}" class="btn btn-form" target="_blank">➕ Add Maintenance Log</a>
+                                <a href="${logViewUrl}" class="btn btn-history" target="_blank">📜 View History Log</a>
                                 <hr>
-                                <a href="${editUrl}" class="btn btn-status" target="_blank">Toggle Status (Red/Green)</a>
+                                <a href="${editUrl}" class="btn btn-status" target="_blank">Change Status (Red/Green)</a>
                                 <a href="https://gemini.google.com" class="btn btn-ai" target="_blank">🤖 Ask AI Troubleshooting</a>
                             </div>
                         `);
@@ -75,13 +76,7 @@
                 }
             });
         }
-
         loadIsco();
-
-        // Coordinate finder for setting up other pins
-        map.on('click', function(e) {
-            console.log("Clicked at: ", e.latlng.lat.toFixed(0), e.latlng.lng.toFixed(0));
-        });
     </script>
 </body>
 </html>
