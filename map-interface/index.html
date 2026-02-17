@@ -6,18 +6,38 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
     <style>
-        body, html { margin: 0; padding: 0; height: 100%; font-family: sans-serif; }
+        body, html { margin: 0; padding: 0; height: 100%; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         #map { height: 100vh; width: 100%; background: #fff; }
-        .info-panel { line-height: 1.4; font-size: 14px; }
-        .status-badge { padding: 4px 8px; border-radius: 12px; color: white; font-weight: bold; font-size: 12px; }
-        .btn { display: block; text-align: center; padding: 8px; margin: 8px 0; border-radius: 5px; text-decoration: none; color: white; font-weight: bold; font-size: 13px; transition: 0.2s; }
-        .btn:hover { opacity: 0.8; }
-        .btn-status { background: #444; }
-        .btn-history { background: #007bff; }
-        .btn-form { background: #28a745; }
-        .btn-manual { background: #17a2b8; } /* Teal for Manual */
-        .btn-ai { background: #6f42c1; }
-        hr { border: 0; border-top: 1px solid #eee; margin: 10px 0; }
+        
+        /* Information Panel Styling */
+        .info-panel { line-height: 1.5; font-size: 14px; color: #333; }
+        .status-badge { padding: 5px 10px; border-radius: 4px; color: white; font-weight: 800; font-size: 12px; text-transform: uppercase; }
+        
+        /* High-Contrast Button Styling */
+        .btn { 
+            display: block; 
+            text-align: center; 
+            padding: 10px; 
+            margin: 8px 0; 
+            border-radius: 6px; 
+            text-decoration: none; 
+            color: white !important; /* Forces text to be white */
+            font-weight: 700; 
+            font-size: 13px; 
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3); /* Adds readability */
+            transition: transform 0.1s;
+            border: 1px solid rgba(0,0,0,0.1);
+        }
+        .btn:active { transform: scale(0.98); }
+
+        /* Specific Button Colors - Darkened for better contrast with white text */
+        .btn-manual  { background: #0b7285; } /* Dark Teal */
+        .btn-form    { background: #2b8a3e; } /* Dark Green */
+        .btn-history { background: #1864ab; } /* Dark Blue */
+        .btn-status  { background: #495057; } /* Dark Gray */
+        .btn-ai      { background: #5f3dc4; } /* Dark Purple */
+        
+        hr { border: 0; border-top: 2px solid #eee; margin: 12px 0; }
     </style>
 </head>
 <body>
@@ -32,10 +52,10 @@
         var sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQr85kdlDb92TZR_iUJTT3Plry6-0Bc4n3di7fTQvT1A6cMRcPcVe-TIA8WCqJRa15udjsAeG9jdoi0/pub?output=csv';
         var formUrl  = 'https://docs.google.com/forms/d/e/1FAIpQLSfvjJTJ1nLW-Eb3ZoEL_wix3h7kMm0SoqeJ5ndFaYjvagW-_Q/viewform?usp=dialog';
         
-        // Link to the "Form Responses" tab in Google Sheets
-        var logViewUrl = 'https://docs.google.com/spreadsheets/d/10DsQ---R2owVXBIlj2bMnjH3kB05bFl69PxMVVlC4dU/edit#gid=YOUR_FORM_RESPONSES_GID';
+        // REPLACE THIS with your "Form Responses" tab URL (the one with the #gid=...)
+        var logViewUrl = 'https://docs.google.com/spreadsheets/d/10DsQ---R2owVXBIlj2bMnjH3kB05bFl69PxMVVlC4dU/edit#gid=1956041763';
         
-        // Link to your manual in GitHub (e.g., https://github.com/user/repo/blob/main/manuals/isco.pdf)
+        // Link to your manual in GitHub
         var manualUrl = 'PASTE_YOUR_GITHUB_MANUAL_URL_HERE';
         
         var editUrl = 'https://docs.google.com/spreadsheets/d/10DsQ---R2owVXBIlj2bMnjH3kB05bFl69PxMVVlC4dU/edit?gid=0#gid=0';
@@ -50,26 +70,27 @@
                         var statusColor = isco.Status.trim().toLowerCase();
                         var steward = isco.Steward || "Unassigned";
 
+                        // Larger circle for better visibility on floor plan
                         var marker = L.circle([400, 300], {
-                            radius: 35, 
+                            radius: 40, 
                             fillColor: statusColor,
                             color: "#000",
-                            weight: 2,
+                            weight: 3,
                             fillOpacity: 1
                         }).addTo(map);
 
                         marker.bindPopup(`
-                            <div class="info-panel" style="width: 250px;">
-                                <h2 style="margin:0;">Isco Flash</h2>
+                            <div class="info-panel" style="width: 260px;">
+                                <h2 style="margin:0; font-size: 20px;">Isco Flash</h2>
                                 <p><b>Status:</b> <span class="status-badge" style="background:${statusColor}">${statusColor.toUpperCase()}</span></p>
                                 <p><b>Steward:</b> ${steward}</p>
                                 <hr>
-                                <a href="${manualUrl}" class="btn btn-manual" target="_blank">📖 View Manual (GitHub)</a>
-                                <a href="${formUrl}" class="btn btn-form" target="_blank">➕ Add Maintenance Log</a>
-                                <a href="${logViewUrl}" class="btn btn-history" target="_blank">📜 View History Log</a>
+                                <a href="${manualUrl}" class="btn btn-manual" target="_blank">📖 VIEW MANUAL (GITHUB)</a>
+                                <a href="${formUrl}" class="btn btn-form" target="_blank">➕ ADD MAINTENANCE LOG</a>
+                                <a href="${logViewUrl}" class="btn btn-history" target="_blank">📜 VIEW HISTORY LOG</a>
                                 <hr>
-                                <a href="${editUrl}" class="btn btn-status" target="_blank">Change Status (Red/Green)</a>
-                                <a href="https://gemini.google.com" class="btn btn-ai" target="_blank">🤖 Ask AI Troubleshooting</a>
+                                <a href="${editUrl}" class="btn btn-status" target="_blank">CHANGE STATUS (RED/GREEN)</a>
+                                <a href="https://gemini.google.com" class="btn btn-ai" target="_blank">🤖 ASK AI TROUBLESHOOTING</a>
                             </div>
                         `);
                     }
