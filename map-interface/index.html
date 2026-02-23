@@ -194,6 +194,7 @@
                         var steward   = row.Steward || "Unassigned";
                         var lastCal   = row.Last_Calibrated || "N/A";
                         var nextPM    = row.Next_PM_Due || "N/A";
+                        var comment    = row. Comment || "N/A"; 
     
                         // Normalize status; assume "green" / "red" baseline
                         var statusColor = statusRaw === "green" ? "green" : "red";
