@@ -82,7 +82,7 @@
         var bounds = [[0,0], [1080,1920]];
         L.imageOverlay('Cernak lab map.svg', bounds).addTo(map);
         map.fitBounds(bounds);
-        map.setZoom(map.getZoom() + 0.6);
+        map.setZoom(map.getZoom() + 0.5);
         map.whenReady(function () {
             setTimeout(function () { map.invalidateSize(); }, 0);
         });
@@ -145,7 +145,7 @@
             "Ganges":      [428, 1364],
             "Colorado":    [486, 1714],
             "NUB GB":      [542, 1714],
-            "Huanghe":     [302, 1442],
+            "Huanghe":     [306, 1442],
             "ISCO":        [188, 120],
             "Chem GB 3608": [428, 560],
             "Chem GB 3622": [428, 1224],
