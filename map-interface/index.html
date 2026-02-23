@@ -82,7 +82,7 @@
         var bounds = [[0,0], [1080,1920]];
         L.imageOverlay('Cernak lab map.svg', bounds).addTo(map);
         map.fitBounds(bounds);
-        map.setZoom(map.getZoom() + 0.4);
+        map.setZoom(map.getZoom() + 0.45);
         map.whenReady(function () {
             setTimeout(function () { map.invalidateSize(); }, 0);
         });
@@ -143,8 +143,8 @@
             "SPS":         [204, 418],
             "Nile":        [150, 650],
             "Ganges":      [4228, 1366],
-            "Colorado":    [486, 1660],
-            "NUB GB":      [542, 1660],
+            "Colorado":    [486, 1714],
+            "NUB GB":      [542, 1714],
             "Huanghe":     [290, 1448],
             "ISCO":        [188, 120],
             "Chem GB 3608": [428, 560],
@@ -158,9 +158,9 @@
             "Lyophilizer": [268, 1310],
             "Opentrons 3608": [332, 560],
             "Opentrons 3622": [332, 1224],
-            "Opentrons NUB":  [850, 250],
-            "-80 Freezer":    [430, 1660],
-            "Incubator":      [374, 1660]
+            "Opentrons NUB":  [424, 1792],
+            "-80 Freezer":    [424, 1714],
+            "Incubator":      [370, 1714]
         };
 
         // --- Instrument → Manual link(s) ---
