@@ -6,8 +6,8 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
     <style>
-        body, html { margin: 0; padding: 0; height: 125%; font-family: sans-serif; }
-        #map { height: 100vh; width: 125%; background: #fff; }
+        body, html { margin: 0; padding: 0; height: 100%; font-family: sans-serif; }
+        #map { height: 100vh; width: 150%; background: #fff; }
         
         /* Blinking Animation */
         @keyframes blink {
@@ -97,7 +97,7 @@
             "Mosquito 3608":    [350, 1050],
             "Mosquito 3622":    [350, 1050],
             "Genevec":     [600, 250],
-            "Huron":       [600, 450],
+            "Huron":       [428, 424],
             "GCMS":        [600, 650],
             "Biotage":     [600, 850],
             "Lyophilizer": [600, 1050],
@@ -230,7 +230,7 @@
                         }
     
                         var marker = L.circle(coords, {
-                            radius: 10,
+                            radius: 12,
                             fillColor: statusColor,
                             color: "#000",
                             weight: 3,
