@@ -57,7 +57,8 @@
         var formUrl    = 'https://docs.google.com/forms/d/e/1FAIpQLSfvjJTJ1nLW-Eb3ZoEL_wix3h7kMm0SoqeJ5ndFaYjvagW-_Q/viewform?usp=dialog';
         var logViewUrl = 'https://docs.google.com/spreadsheets/d/10DsQ---R2owVXBIlj2bMnjH3kB05bFl69PxMVVlC4dU/edit#gid=1956041763';
         var editUrl    = 'https://docs.google.com/spreadsheets/d/10DsQ---R2owVXBIlj2bMnjH3kB05bFl69PxMVVlC4dU/edit#gid=0';
-        var manualUrl  = 'PASTE_YOUR_GITHUB_MANUAL_URL_HERE';
+        // generic fallback manual link (e.g., GitHub README)
+        var manualUrl  = 'PASTE_GENERIC_MANUAL_URL_HERE';
 
         var aiLink = "https://gemini.google.com/app?prompt=" + encodeURIComponent(
             "I am troubleshooting an instrument in the Cernak Lab. Here are our logs..."
@@ -76,7 +77,7 @@
             if (finderActive) {
                 var lat = Math.round(e.latlng.lat);
                 var lng = Math.round(e.latlng.lng);
-                alert("COORDINATES FOUND:\\n\\nUse this in your code: [" + lat + ", " + lng + "]");
+                alert("COORDINATES FOUND:\n\nUse this in your code: [" + lat + ", " + lng + "]");
                 console.log("Coords:", lat, lng);
             }
         });
@@ -103,6 +104,28 @@
             "Platesealer": [850, 450]
         };
 
+        // --- Instrument → Manual link lookup ---
+        // Put your actual manual URLs here
+        var instrumentManuals = {
+            "SPS":         "https://link-to-sps-manual.pdf",
+            "Chiller":     "https://link-to-chiller-manual.pdf",
+            "Nile":        "https://link-to-nile-manual.pdf",
+            "Ganges":      "https://link-to-ganges-manual.pdf",
+            "Colorado":    "https://link-to-colorado-manual.pdf",
+            "NUB GB":      "https://link-to-nubgb-manual.pdf",
+            "Huanghe":     "https://link-to-huanghe-manual.pdf",
+            "Isco":        "https://link-to-isco-manual.pdf",
+            "Chem GB":     "https://link-to-chemgb-manual.pdf",
+            "Mosquito":    "https://link-to-mosquito-manual.pdf",
+            "Genevec":     "https://link-to-genevec-manual.pdf",
+            "Huron":       "https://link-to-huron-manual.pdf",
+            "GCMS":        "https://link-to-gcms-manual.pdf",
+            "Biotage":     "https://link-to-biotage-manual.pdf",
+            "Lyophilizer": "https://link-to-lyophilizer-manual.pdf",
+            "Opentron":    "https://link-to-opentron-manual.pdf",
+            "Platesealer": "https://link-to-platesealer-manual.pdf"
+        };
+
         // --- Load all instruments and add markers ---
         function loadInstruments() {
             Papa.parse(sheetUrl, {
@@ -116,17 +139,20 @@
                         // Only handle instruments for which we have coordinates
                         if (!instrumentCoords[name]) return;
 
-                        var coords = instrumentCoords[name];
+                        var coords    = instrumentCoords[name];
                         var statusRaw = (row.Status || "").trim().toLowerCase();
-                        var steward = row.Steward || "Unassigned";
-                        var lastCal = row.Last_Calibrated || "N/A";
-                        var nextPM  = row.Next_PM_Due || "N/A";
+                        var steward   = row.Steward || "Unassigned";
+                        var lastCal   = row.Last_Calibrated || "N/A";
+                        var nextPM    = row.Next_PM_Due || "N/A";
 
-                        // Normalize status color; assume "green" / "red" (you can expand this)
+                        // Normalize status; assume "green" / "red" baseline
                         var statusColor = statusRaw === "green" ? "green" : "red";
 
-                        // Only red blinks: apply className only when not green
+                        // Only red blinks
                         var className = statusColor === "red" ? "blinking" : "";
+
+                        // Manual: per instrument if defined, otherwise fallback
+                        var manualUrlForInstrument = instrumentManuals[name] || manualUrl;
 
                         var marker = L.circle(coords, {
                             radius: 20,
@@ -149,7 +175,7 @@
                                 <p><b>Last calibrated:</b> ${lastCal}</p>
                                 <p><b>Next PM due:</b> ${nextPM}</p>
                                 <hr>
-                                <a href="${manualUrl}" class="btn btn-manual" target="_blank">📖 VIEW MANUAL</a>
+                                <a href="${manualUrlForInstrument}" class="btn btn-manual" target="_blank">📖 VIEW MANUAL</a>
                                 <a href="${formUrl}" class="btn btn-form" target="_blank">➕ ADD LOG ENTRY</a>
                                 <a href="${logViewUrl}" class="btn btn-history" target="_blank">📜 VIEW HISTORY LOG</a>
                                 <hr>
