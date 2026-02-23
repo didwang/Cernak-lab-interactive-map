@@ -1,41 +1,38 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Cernak Lab - Isco Portal</title>
+    <title>Cernak Lab - Equipment Portal</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
     <style>
-        body, html { margin: 0; padding: 0; height: 100%; font-family: sans-serif; }
+        body, html { margin: 0; padding: 0; height: 100%; font-family: sans-serif; background: #222; }
         #map { height: 100vh; width: 100%; background: #fff; }
         
-        /* Blinking Animation */
-        @keyframes blink {
-            0% { opacity: 1; stroke-width: 3; }
-            50% { opacity: 0.3; stroke-width: 8; }
-            100% { opacity: 1; stroke-width: 3; }
+        /* Animation: Only things that are RED will blink */
+        @keyframes alert-blink {
+            0% { opacity: 1; stroke-width: 3; stroke: #000; }
+            50% { opacity: 0.4; stroke-width: 10; stroke: red; }
+            100% { opacity: 1; stroke-width: 3; stroke: #000; }
         }
-        .blinking { animation: blink 1.5s infinite; }
+        .status-red { animation: alert-blink 1.2s infinite; }
 
-        /* Information Panel Styling */
-        .info-panel { line-height: 1.4; color: #000; }
-        .status-badge { padding: 4px 10px; border-radius: 4px; color: white; font-weight: bold; font-size: 11px; }
+        .info-panel { line-height: 1.4; color: #000; min-width: 220px; }
+        .status-badge { padding: 4px 10px; border-radius: 4px; color: white; font-weight: bold; font-size: 11px; text-transform: uppercase; }
         
-        /* Button Styling */
         .btn { 
-            display: block; text-align: center; padding: 12px; margin: 10px 0; border-radius: 6px; 
+            display: block; text-align: center; padding: 10px; margin: 6px 0; border-radius: 6px; 
             text-decoration: none !important; color: #ffffff !important; 
-            font-weight: 800; font-size: 13px; box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            font-weight: 800; font-size: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
-        .btn-manual  { background: #006064; }
-        .btn-form    { background: #1b5e20; }
-        .btn-history { background: #0d47a1; }
-        .btn-status  { background: #212121; }
-        .btn-ai      { background: #4a148c; }
+        .btn-manual  { background: #006064; } /* Teal */
+        .btn-form    { background: #1b5e20; } /* Green */
+        .btn-history { background: #0d47a1; } /* Blue */
+        .btn-ai      { background: #4a148c; } /* Purple */
+        .btn-edit    { background: #333; font-size: 10px; padding: 5px; } /* Small Black */
 
-        /* Coordinate Tool Styling */
         #coord-tool {
-            position: absolute; top: 10px; right: 10px; z-index: 1000;
+            position: absolute; top: 10px; left: 50px; z-index: 1000;
             background: white; padding: 10px; border: 2px solid #333; border-radius: 8px;
             font-weight: bold; cursor: pointer;
         }
@@ -46,76 +43,92 @@
     <div id="map"></div>
 
     <script>
+        // 1. Map Setup
         var map = L.map('map', { crs: L.CRS.Simple, minZoom: -1 });
         var bounds = [[0,0], [1080,1920]];
         L.imageOverlay('Cernak lab map.svg', bounds).addTo(map);
         map.fitBounds(bounds);
 
+        // 2. Data Sources
         var sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQr85kdlDb92TZR_iUJTT3Plry6-0Bc4n3di7fTQvT1A6cMRcPcVe-TIA8WCqJRa15udjsAeG9jdoi0/pub?output=csv';
-        var formUrl  = 'https://docs.google.com/forms/d/e/1FAIpQLSfvjJTJ1nLW-Eb3ZoEL_wix3h7kMm0SoqeJ5ndFaYjvagW-_Q/viewform?usp=dialog';
         var logViewUrl = 'https://docs.google.com/spreadsheets/d/10DsQ---R2owVXBIlj2bMnjH3kB05bFl69PxMVVlC4dU/edit#gid=1956041763';
-        var editUrl = 'https://docs.google.com/spreadsheets/d/10DsQ---R2owVXBIlj2bMnjH3kB05bFl69PxMVVlC4dU/edit#gid=0';
-        var manualUrl = 'PASTE_YOUR_GITHUB_MANUAL_URL_HERE';
-        
-        var aiLink = "https://gemini.google.com/app?prompt=" + encodeURIComponent("I am troubleshooting the Isco Flash in the Cernak Lab. Here are our logs...");
+        var editSheetUrl = 'https://docs.google.com/spreadsheets/d/10DsQ---R2owVXBIlj2bMnjH3kB05bFl69PxMVVlC4dU/edit#gid=0';
 
-        // --- Coordinate Finder Logic ---
+        // 3. Lab Instrument Database (Coordinates are placeholders - use the tool to align them!)
+        var instruments = [
+            { name: "Isco", steward: "Emil", pos: [400, 300], manual: "LINK_HERE" },
+            { name: "SPS", steward: "Chun-Yi", pos: [200, 280], manual: "LINK_HERE" },
+            { name: "Chiller", steward: "Chun-Yi", pos: [200, 200], manual: "LINK_HERE" },
+            { name: "GCMS", steward: "Di", pos: [330, 300], manual: "LINK_HERE" },
+            { name: "Biotage", steward: "Di", pos: [330, 250], manual: "LINK_HERE" },
+            { name: "Lyophilizer", steward: "TBD", pos: [330, 200], manual: "LINK_HERE" },
+            { name: "Glovebox", steward: "Carl", pos: [330, 350], manual: "LINK_HERE" },
+            { name: "Huanghe", steward: "Tiger", pos: [330, 450], manual: "LINK_HERE" },
+            { name: "-80 Freezer", steward: "Shireen", pos: [100, 100], manual: "LINK_HERE" }
+        ];
+
+        // 4. Load Google Sheet Data
+        function loadLabStatus() {
+            Papa.parse(sheetUrl, {
+                download: true,
+                header: true,
+                complete: function(results) {
+                    var data = results.data;
+                    
+                    instruments.forEach(inst => {
+                        // Find matching row in Google Sheet
+                        var row = data.find(r => r.Instrument.toLowerCase() === inst.name.toLowerCase());
+                        var status = row ? row.Status.trim().toLowerCase() : "gray";
+                        var currentSteward = row ? row.Steward : inst.steward;
+
+                        // Only blink if status is RED
+                        var blinkClass = (status === 'red') ? 'status-red' : '';
+
+                        var marker = L.circle(inst.pos, {
+                            radius: 18,
+                            fillColor: status,
+                            color: "#000",
+                            weight: 2,
+                            fillOpacity: 1,
+                            className: blinkClass
+                        }).addTo(map);
+
+                        var aiLink = "https://gemini.google.com/app?prompt=" + encodeURIComponent("I am troubleshooting the " + inst.name + " in the Cernak Lab. Steward is " + currentSteward + ". Based on our logs, what should I do?");
+
+                        marker.bindPopup(`
+                            <div class="info-panel">
+                                <h3 style="margin:0;">${inst.name}</h3>
+                                <p><b>Status:</b> <span class="status-badge" style="background:${status}">${status}</span></p>
+                                <p><b>Steward:</b> ${currentSteward}</p>
+                                <hr>
+                                <a href="${inst.manual}" class="btn btn-manual" target="_blank">📖 MANUAL</a>
+                                <a href="${logViewUrl}" class="btn btn-history" target="_blank">📜 HISTORY LOG</a>
+                                <a href="${aiLink}" class="btn btn-ai" target="_blank">🤖 ASK AI</a>
+                                <a href="${editSheetUrl}" class="btn btn-edit" target="_blank">⚙️ EDIT STATUS</a>
+                            </div>
+                        `);
+                    });
+                }
+            });
+        }
+
+        // 5. Coordinate Finder Tool
         var finderActive = false;
         function toggleCoordFinder() {
             finderActive = !finderActive;
             document.getElementById('coord-tool').style.background = finderActive ? '#ffeb3b' : 'white';
-            document.getElementById('coord-tool').innerText = finderActive ? 'Click Map to get Coords' : '📍 Start Aligning Dots';
+            document.getElementById('coord-tool').innerText = finderActive ? 'Click Image to get Coords' : '📍 Start Aligning Dots';
         }
 
         map.on('click', function(e) {
             if (finderActive) {
                 var lat = Math.round(e.latlng.lat);
                 var lng = Math.round(e.latlng.lng);
-                alert("COORDINATES FOUND:\n\nUse this in your code: [" + lat + ", " + lng + "]");
-                console.log("Coords:", lat, lng);
+                alert("Instrument: New Position\n\nUpdate your 'instruments' array with: [" + lat + ", " + lng + "]");
             }
         });
 
-        // --- Load Data and Handle Blinking ---
-        function loadIsco() {
-            Papa.parse(sheetUrl, {
-                download: true,
-                header: true,
-                complete: function(results) {
-                    var isco = results.data.find(row => row.Instrument === 'Isco');
-                    if (isco) {
-                        var statusColor = isco.Status.trim().toLowerCase();
-                        var steward = isco.Steward || "Unassigned";
-
-                        // Current coordinate is [400, 300]. Use the tool to find the exact spot!
-                        var marker = L.circle([400, 300], {
-                            radius: 20, 
-                            fillColor: statusColor,
-                            color: "#000",
-                            weight: 3,
-                            fillOpacity: 1,
-                            className: 'blinking' // This triggers the CSS blink
-                        }).addTo(map);
-
-                        marker.bindPopup(`
-                            <div class="info-panel" style="width: 250px;">
-                                <h2 style="margin:0 0 10px 0;">Isco Flash</h2>
-                                <p><b>Status:</b> <span class="status-badge" style="background:${statusColor}">${statusColor.toUpperCase()}</span></p>
-                                <p><b>Steward:</b> ${steward}</p>
-                                <hr>
-                                <a href="${manualUrl}" class="btn btn-manual" target="_blank">📖 VIEW MANUAL</a>
-                                <a href="${formUrl}" class="btn btn-form" target="_blank">➕ ADD LOG ENTRY</a>
-                                <a href="${logViewUrl}" class="btn btn-history" target="_blank">📜 VIEW HISTORY LOG</a>
-                                <hr>
-                                <a href="${editUrl}" class="btn btn-status" target="_blank">CHANGE RED/GREEN</a>
-                                <a href="${aiLink}" class="btn btn-ai" target="_blank">🤖 ASK AI ASSISTANT</a>
-                            </div>
-                        `);
-                    }
-                }
-            });
-        }
-        loadIsco();
+        loadLabStatus();
     </script>
 </body>
 </html>
