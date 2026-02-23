@@ -7,7 +7,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
     <style>
         body, html { margin: 0; padding: 0; height: 100%; font-family: sans-serif; }
-        #map { height: 100vh; width: 150%; background: #fff; }
+        #map { height: 100vh; width: 100%; background: #fff; }
         
         /* Blinking Animation */
         @keyframes blink {
@@ -48,9 +48,17 @@
         <script>
         // --- Map setup ---
         var map = L.map('map', { crs: L.CRS.Simple, minZoom: -1 });
-        var bounds = [[0,0], [1080,1920]]; // match your SVG coordinate system
+        var bounds = [[0,0], [1080,1920]];
         L.imageOverlay('Cernak lab map.svg', bounds).addTo(map);
         map.fitBounds(bounds);
+        map.setZoom(map.getZoom() + 2);  // adjust as needed
+        
+        map.whenReady(function () {
+            setTimeout(function () {
+                map.invalidateSize();
+            }, 0);
+        });
+
     
         // --- URLs ---
         var sheetUrl   = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQr85kdlDb92TZR_iUJTT3Plry6-0Bc4n3di7fTQvT1A6cMRcPcVe-TIA8WCqJRa15udjsAeG9jdoi0/pub?output=csv';
