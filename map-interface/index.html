@@ -51,7 +51,7 @@
         var bounds = [[0,0], [1080,1920]];
         L.imageOverlay('Cernak lab map.svg', bounds).addTo(map);
         map.fitBounds(bounds);
-        map.setZoom(map.getZoom() + 0.3);  // adjust as needed
+        map.setZoom(map.getZoom() + 0.4);  // adjust as needed
         
         map.whenReady(function () {
             setTimeout(function () {
@@ -93,20 +93,20 @@
         // --- Instrument → Coordinate lookup ---
         // Replace these with real values from the coord finder
         var instrumentCoords = {
-            "SPS":         [150, 250],
+            "SPS":         [192, 418],
             "Nile":        [150, 650],
             "Ganges":      [150, 850],
             "Colorado":    [150, 1050],
             "NUB GB":      [350, 250],
             "Huanghe":     [350, 450],
-            "ISCO":        [164, 160],
-            "Chem GB 3608":     [350, 850],
+            "ISCO":        [176, 120],
+            "Chem GB 3608":     [428, 558],
             "Chem GB 3622":     [350, 850],
             "Mosquito 3608":    [350, 1050],
             "Mosquito 3622":    [350, 1050],
-            "Genevec":     [600, 250],
+            "Genevec":     [274, 474],
             "Huron":       [428, 418],
-            "GCMS":        [600, 650],
+            "GCMS":        [428, 474],
             "Biotage":     [600, 850],
             "Lyophilizer": [600, 1050],
             "Opentrons 3608":    [850, 250],
