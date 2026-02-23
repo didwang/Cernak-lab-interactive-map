@@ -51,7 +51,7 @@
         var bounds = [[0,0], [1080,1920]];
         L.imageOverlay('Cernak lab map.svg', bounds).addTo(map);
         map.fitBounds(bounds);
-        map.setZoom(map.getZoom() + 2);  // adjust as needed
+        map.setZoom(map.getZoom() + 1);  // adjust as needed
         
         map.whenReady(function () {
             setTimeout(function () {
@@ -236,13 +236,21 @@
                                 </a>
                             `;
                         }
-    
+                        
+                        // lighter custom colors
+                        var fill;
+                        if (statusColor === "green") {
+                            fill = "#66bb6a";   // light green
+                        } else {
+                            fill = "#ef5350";   // light red
+                        }
+                        
                         var marker = L.circle(coords, {
                             radius: 12,
-                            fillColor: statusColor,
-                            color: "#000",
-                            weight: 3,
-                            fillOpacity: 1,
+                            fillColor: fill,
+                            color: "transparent",   // no outline
+                            weight: 0,              // no border width
+                            fillOpacity: 0.9,
                             className: className
                         }).addTo(map);
     
