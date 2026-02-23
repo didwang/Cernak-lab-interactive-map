@@ -1,5 +1,5 @@
 # Cernak Lab Interactive Instrument Map
-Live map: https://didwang.github.io/Cernak-lab-interactive-map/map-interface/
+Live map: (https://didwang.github.io/Cernak-lab-interactive-map/map-interface/)
 
 This page shows an interactive floor map of the Cernak Lab with the location and status of major instruments.
 
