@@ -2,18 +2,13 @@
 <html>
 <head>
     <title>Cernak Lab - Instrument Portal</title>
-
-    <!-- Leaflet CSS + JS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-    <!-- PapaParse for Google Sheet CSV -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
-
     <style>
         body, html { margin: 0; padding: 0; height: 100%; font-family: sans-serif; }
         #map { height: 100vh; width: 100%; background: #fff; }
-
+        
         /* Blinking Animation */
         @keyframes blink {
             0%   { opacity: 1;   stroke-width: 3; }
@@ -24,26 +19,13 @@
 
         /* Information Panel Styling */
         .info-panel { line-height: 1.4; color: #000; }
-        .status-badge {
-            padding: 4px 10px;
-            border-radius: 4px;
-            color: #fff;
-            font-weight: bold;
-            font-size: 11px;
-        }
-
+        .status-badge { padding: 4px 10px; border-radius: 4px; color: white; font-weight: bold; font-size: 11px; }
+        
         /* Button Styling */
-        .btn {
-            display: block;
-            text-align: center;
-            padding: 12px;
-            margin: 10px 0;
-            border-radius: 6px;
-            text-decoration: none !important;
-            color: #ffffff !important;
-            font-weight: 800;
-            font-size: 13px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        .btn { 
+            display: block; text-align: center; padding: 12px; margin: 10px 0; border-radius: 6px; 
+            text-decoration: none !important; color: #ffffff !important; 
+            font-weight: 800; font-size: 13px; box-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
         .btn-manual  { background: #006064; }
         .btn-form    { background: #1b5e20; }
@@ -53,16 +35,9 @@
 
         /* Coordinate Tool Styling */
         #coord-tool {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            z-index: 1000;
-            background: white;
-            padding: 10px;
-            border: 2px solid #333;
-            border-radius: 8px;
-            font-weight: bold;
-            cursor: pointer;
+            position: absolute; top: 10px; right: 10px; z-index: 1000;
+            background: white; padding: 10px; border: 2px solid #333; border-radius: 8px;
+            font-weight: bold; cursor: pointer;
         }
     </style>
 </head>
@@ -71,21 +46,22 @@
     <div id="map"></div>
 
     <script>
-        // --- Map + background image ---
+        // --- Map setup ---
         var map = L.map('map', { crs: L.CRS.Simple, minZoom: -1 });
-        // adjust bounds to your SVG size
-        var bounds = [[0,0], [1080,1920]];
+        var bounds = [[0,0], [1080,1920]]; // match your SVG coordinate system
         L.imageOverlay('Cernak lab map.svg', bounds).addTo(map);
         map.fitBounds(bounds);
 
-        // Public CSV with ALL instruments (one row per instrument)
-        var sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQr85kdlDb92TZR_iUJTT3Plry6-0Bc4n3di7fTQvT1A6cMRcPcVe-TIA8WCqJRa15udjsAeG9jdoi0/pub?output=csv';
+        // --- URLs ---
+        var sheetUrl   = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQr85kdlDb92TZR_iUJTT3Plry6-0Bc4n3di7fTQvT1A6cMRcPcVe-TIA8WCqJRa15udjsAeG9jdoi0/pub?output=csv';
+        var formUrl    = 'https://docs.google.com/forms/d/e/1FAIpQLSfvjJTJ1nLW-Eb3ZoEL_wix3h7kMm0SoqeJ5ndFaYjvagW-_Q/viewform?usp=dialog';
+        var logViewUrl = 'https://docs.google.com/spreadsheets/d/10DsQ---R2owVXBIlj2bMnjH3kB05bFl69PxMVVlC4dU/edit#gid=1956041763';
+        var editUrl    = 'https://docs.google.com/spreadsheets/d/10DsQ---R2owVXBIlj2bMnjH3kB05bFl69PxMVVlC4dU/edit#gid=0';
+        var manualUrl  = 'PASTE_YOUR_GITHUB_MANUAL_URL_HERE';
 
-        // Optional global defaults (used if a row leaves these blank)
-        var defaultFormUrl  = 'https://docs.google.com/forms/d/e/1FAIpQLSfvjJTJ1nLW-Eb3ZoEL_wix3h7kMm0SoqeJ5ndFaYjvagW-_Q/viewform?usp=dialog';
-        var defaultLogUrl   = 'https://docs.google.com/spreadsheets/d/10DsQ---R2owVXBIlj2bMnjH3kB05bFl69PxMVVlC4dU/edit#gid=1956041763';
-        var defaultEditUrl  = 'https://docs.google.com/spreadsheets/d/10DsQ---R2owVXBIlj2bMnjH3kB05bFl69PxMVVlC4dU/edit#gid=0';
-        var defaultManualUrl = 'PASTE_YOUR_GITHUB_MANUAL_URL_HERE';
+        var aiLink = "https://gemini.google.com/app?prompt=" + encodeURIComponent(
+            "I am troubleshooting an instrument in the Cernak Lab. Here are our logs..."
+        );
 
         // --- Coordinate Finder Logic ---
         var finderActive = false;
@@ -100,68 +76,73 @@
             if (finderActive) {
                 var lat = Math.round(e.latlng.lat);
                 var lng = Math.round(e.latlng.lng);
-                alert("COORDINATES FOUND:\n\nUse this in your sheet: " + lat + " , " + lng);
+                alert("COORDINATES FOUND:\n\nUse this in your code: [" + lat + ", " + lng + "]");
                 console.log("Coords:", lat, lng);
             }
         });
 
-        // --- Load all instruments from sheet and draw markers ---
+        // --- Instrument → Coordinate lookup ---
+        // Replace these with real values from the coord finder
+        var instrumentCoords = {
+            "SPS":         [150, 250],
+            "Chiller":     [150, 450],
+            "Nile":        [150, 650],
+            "Ganges":      [150, 850],
+            "Colorado":    [150, 1050],
+            "NUB GB":      [350, 250],
+            "Huanghe":     [350, 450],
+            "Isco":        [350, 650],
+            "Chem GB":     [350, 850],
+            "Mosquito":    [350, 1050],
+            "Genevec":     [600, 250],
+            "Huron":       [600, 450],
+            "GCMS":        [600, 650],
+            "Biotage":     [600, 850],
+            "Lyophilizer": [600, 1050],
+            "Opentron":    [850, 250],
+            "Platesealer": [850, 450]
+        };
+
+        // --- Load all instruments and add markers ---
         function loadInstruments() {
             Papa.parse(sheetUrl, {
                 download: true,
                 header: true,
                 complete: function(results) {
                     results.data.forEach(function(row) {
-                        // Require coordinates
-                        if (!row.Lat || !row.Lng) return;
+                        var name = (row.Instrument || "").trim();
+                        if (!name) return;
 
-                        var name    = (row.Instrument || 'Unknown').trim();
-                        var status  = (row.Status || 'grey').trim().toLowerCase();
-                        var steward = row.Steward || 'Unassigned';
+                        // Only handle instruments for which we have coordinates
+                        if (!instrumentCoords[name]) return;
 
-                        var lat = parseFloat(row.Lat);
-                        var lng = parseFloat(row.Lng);
+                        var coords = instrumentCoords[name];
+                        var statusColor = (row.Status || "gray").trim().toLowerCase();
+                        var steward = row.Steward || "Unassigned";
 
-                        // Per‑instrument URLs with fallbacks
-                        var manualUrl = row.ManualURL || defaultManualUrl;
-                        var formUrl   = row.FormURL   || defaultFormUrl;
-                        var logUrl    = row.LogURL    || defaultLogUrl;
-                        var editUrl   = row.EditURL   || defaultEditUrl;
-
-                        var aiPrompt = "I am troubleshooting the " + name +
-                                       " in the Cernak Lab. Here are our logs...";
-                        var aiLink = (row.AILink && row.AILink.trim().length > 0)
-                            ? row.AILink
-                            : "https://gemini.google.com/app?prompt=" + encodeURIComponent(aiPrompt);
-
-                        var marker = L.circle([lat, lng], {
+                        var marker = L.circle(coords, {
                             radius: 20,
-                            fillColor: status,
+                            fillColor: statusColor,
                             color: "#000",
                             weight: 3,
                             fillOpacity: 1,
                             className: 'blinking'
                         }).addTo(map);
 
-                        var popupHtml = `
-                            <div class="info-panel" style="width: 260px;">
+                        marker.bindPopup(`
+                            <div class="info-panel" style="width: 250px;">
                                 <h2 style="margin:0 0 10px 0;">${name}</h2>
-                                <p><b>Status:</b>
-                                   <span class="status-badge" style="background:${status}">
-                                       ${status.toUpperCase()}
-                                   </span>
-                                </p>
+                                <p><b>Status:</b> <span class="status-badge" style="background:${statusColor}">${statusColor.toUpperCase()}</span></p>
                                 <p><b>Steward:</b> ${steward}</p>
                                 <hr>
-                                ${manualUrl ? `<a href="${manualUrl}" class="btn btn-manual" target="_blank">📖 VIEW MANUAL</a>` : ``}
-                                ${formUrl   ? `<a href="${formUrl}"   class="btn btn-form"   target="_blank">➕ ADD LOG ENTRY</a>` : ``}
-                                ${logUrl    ? `<a href="${logUrl}"    class="btn btn-history"target="_blank">📜 VIEW HISTORY LOG</a>` : ``}
+                                <a href="${manualUrl}" class="btn btn-manual" target="_blank">📖 VIEW MANUAL</a>
+                                <a href="${formUrl}" class="btn btn-form" target="_blank">➕ ADD LOG ENTRY</a>
+                                <a href="${logViewUrl}" class="btn btn-history" target="_blank">📜 VIEW HISTORY LOG</a>
                                 <hr>
-                                ${editUrl   ? `<a href="${editUrl}"   class="btn btn-status" target="_blank">CHANGE RED/GREEN</a>` : ``}
+                                <a href="${editUrl}" class="btn btn-status" target="_blank">CHANGE RED/GREEN</a>
                                 <a href="${aiLink}" class="btn btn-ai" target="_blank">🤖 ASK AI ASSISTANT</a>
                             </div>
-                        `;
-                        marker.bindPopup(popupHtml);
+                        `);
                     });
                 }
             });
