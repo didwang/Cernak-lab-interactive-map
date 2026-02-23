@@ -63,46 +63,50 @@
     </style>
 </head>
 <body>
+    <!-- Map container (needed for Leaflet) -->
+    <div id="map"></div>
+
+    <!-- Coordinate UI -->
     <div id="coord-display" style="display:none;">Lat: –, Lng: –</div>
     <div id="coord-tooltip"></div>
+    <div id="coord-tool" onclick="toggleCoordOverlay()"
+         style="position:absolute; top:10px; right:10px; z-index:1000;
+                background:white; padding:10px; border:2px solid #333;
+                border-radius:8px; font-weight:bold; cursor:pointer;">
+        📍 Show / Hide Coordinates
+    </div>
 
-
-        <script>
+    <script>
         // --- Map setup ---
         var map = L.map('map', { crs: L.CRS.Simple, minZoom: -1 });
         var bounds = [[0,0], [1080,1920]];
         L.imageOverlay('Cernak lab map.svg', bounds).addTo(map);
         map.fitBounds(bounds);
-        map.setZoom(map.getZoom() + 0.4);  // adjust as needed
-        
+        map.setZoom(map.getZoom() + 0.4);
         map.whenReady(function () {
-            setTimeout(function () {
-                map.invalidateSize();
-            }, 0);
+            setTimeout(function () { map.invalidateSize(); }, 0);
         });
 
-    
         // --- URLs ---
         var sheetUrl   = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQr85kdlDb92TZR_iUJTT3Plry6-0Bc4n3di7fTQvT1A6cMRcPcVe-TIA8WCqJRa15udjsAeG9jdoi0/pub?output=csv';
         var formUrl    = 'https://docs.google.com/forms/d/e/1FAIpQLSfvjJTJ1nLW-Eb3ZoEL_wix3h7kMm0SoqeJ5ndFaYjvagW-_Q/viewform?usp=dialog';
         var logViewUrl = 'https://docs.google.com/spreadsheets/d/10DsQ---R2owVXBIlj2bMnjH3kB05bFl69PxMVVlC4dU/edit#gid=1956041763';
         var editUrl    = 'https://docs.google.com/spreadsheets/d/10DsQ---R2owVXBIlj2bMnjH3kB05bFl69PxMVVlC4dU/edit#gid=0';
-        // generic fallback manual link (e.g., lab wiki)
-        var manualUrl  = 'https://drive.google.com'; 
-    
+        var manualUrl  = 'https://drive.google.com';
+
         var aiLink = "https://gemini.google.com/app?prompt=" + encodeURIComponent(
             "I am troubleshooting an instrument in the Cernak Lab. Here are our logs..."
         );
-    
+
         // --- Coordinate overlay & hover tooltip ---
         var coordOverlayActive = false;
         var coordDisplay = document.getElementById('coord-display');
         var coordTooltip = document.getElementById('coord-tooltip');
-        
+
         function toggleCoordOverlay() {
             coordOverlayActive = !coordOverlayActive;
             var el = document.getElementById('coord-tool');
-        
+
             if (coordOverlayActive) {
                 el.style.background = '#ffeb3b';
                 el.innerText = 'Hide Coordinates';
@@ -115,24 +119,16 @@
                 coordTooltip.style.display = 'none';
             }
         }
-        
-        // Update displayed coordinates and tooltip on mouse move
+
         map.on('mousemove', function(e) {
             if (!coordOverlayActive) return;
-        
             var lat = Math.round(e.latlng.lat);
             var lng = Math.round(e.latlng.lng);
-        
-            // bottom-left box
             coordDisplay.textContent = 'Lat: ' + lat + ', Lng: ' + lng;
-        
-            // small tooltip near cursor
             coordTooltip.style.left = (e.originalEvent.clientX + 12) + 'px';
             coordTooltip.style.top  = (e.originalEvent.clientY + 12) + 'px';
             coordTooltip.textContent = '[' + lat + ', ' + lng + ']';
         });
-        
-        // Optional: hide tooltip when mouse leaves the map
         map.on('mouseout', function() {
             if (!coordOverlayActive) return;
             coordTooltip.style.display = 'none';
@@ -141,9 +137,8 @@
             if (!coordOverlayActive) return;
             coordTooltip.style.display = 'block';
         });
-    
+
         // --- Instrument → Coordinate lookup ---
-        // Replace these with real values from the coord finder
         var instrumentCoords = {
             "SPS":         [192, 418],
             "Nile":        [150, 650],
@@ -152,24 +147,23 @@
             "NUB GB":      [350, 250],
             "Huanghe":     [350, 450],
             "ISCO":        [176, 120],
-            "Chem GB 3608":     [428, 558],
-            "Chem GB 3622":     [350, 850],
-            "Mosquito 3608":    [350, 1050],
-            "Mosquito 3622":    [350, 1050],
+            "Chem GB 3608": [428, 558],
+            "Chem GB 3622": [350, 850],
+            "Mosquito 3608": [350, 1050],
+            "Mosquito 3622": [350, 1050],
             "Genevec":     [274, 474],
             "Huron":       [428, 418],
             "GCMS":        [428, 474],
             "Biotage":     [600, 850],
             "Lyophilizer": [600, 1050],
-            "Opentrons 3608":    [850, 250],
-            "Opentrons 3622":    [850, 250],
-            "Opentrons NUB":    [850, 250],
+            "Opentrons 3608": [850, 250],
+            "Opentrons 3622": [850, 250],
+            "Opentrons NUB":  [850, 250],
             "-80 Freezer":    [850, 250],
-            "Incubator":    [850, 250],
+            "Incubator":      [850, 250]
         };
-    
+
         // --- Instrument → Manual link(s) ---
-        // For instruments with two resources, we store an array of URLs.
         var instrumentManuals = {
             "SPS": [
                 "https://drive.google.com/file/d/1az_PkpDrI7GcyUPt36Xc6-Z9otGAOvVY/view?usp=drive_link",
@@ -197,10 +191,14 @@
             "ISCO": [
                 "https://drive.google.com/file/d/1pZUCCT8Y-una-oyYfK-K-2UNrPt1HCpV/view?usp=drive_link"
             ],
-            "Chem GB": [
+            "Chem GB 3608": [
                 "https://drive.google.com/drive/folders/1EAglpuvopoLHl73tCfOetszpCy71HuNx?usp=drive_link"
             ],
-            "Mosquito 3608": [],  // “Mosquitoes” link is for both Mosquito & Genevec below
+            "Chem GB 3622": [
+                "https://drive.google.com/drive/folders/1EAglpuvopoLHl73tCfOetszpCy71HuNx?usp=drive_link"
+            ],
+            "Mosquito 3608": [],
+            "Mosquito 3622": [],
             "Genevec": [
                 "https://drive.google.com/file/d/1cxVRDt7AXgNPFuCWhYaBdkVi1pRgxYk0/view?usp=drive_link"
             ],
@@ -235,8 +233,7 @@
                 "https://drive.google.com/file/d/139GIkDT56jGvM7lDMfLS0FY9c5S9jRLh/view?usp=drive_link"
             ]
         };
-    
-        // --- Load all instruments and add markers ---
+
         function loadInstruments() {
             Papa.parse(sheetUrl, {
                 download: true,
@@ -245,76 +242,57 @@
                     results.data.forEach(function(row) {
                         var name = (row.Instrument || "").trim();
                         if (!name) return;
-    
-                        // Only handle instruments for which we have coordinates
                         if (!instrumentCoords[name]) return;
-    
+
                         var coords    = instrumentCoords[name];
                         var statusRaw = (row.Status || "").trim().toLowerCase();
                         var steward   = row.Steward || "Unassigned";
                         var lastCal   = row.Last_Calibrated || "N/A";
                         var nextPM    = row.Next_PM_Due || "N/A";
-                        var comment    = row.Comment || "N/A"; 
-    
-                        // Normalize status; assume "green" / "red" baseline
+                        var comment   = row.Comment || "N/A";
+
                         var statusColor = statusRaw === "green" ? "green" : "red";
                         var className   = statusColor === "red" ? "blinking" : "";
-    
-                        // Manual links: array or fallback
+
                         var manuals = instrumentManuals[name] || [];
                         var manualButtons = "";
-    
+
                         if (manuals.length === 0) {
-                            // single generic button
                             manualButtons = `
                                 <a href="${manualUrl}" class="btn btn-manual" target="_blank">
                                     📖 VIEW MANUAL
-                                </a>
-                            `;
+                                </a>`;
                         } else if (manuals.length === 1) {
                             manualButtons = `
                                 <a href="${manuals[0]}" class="btn btn-manual" target="_blank">
                                     📖 VIEW MANUAL
-                                </a>
-                            `;
+                                </a>`;
                         } else {
-                            // If two or more, show two buttons: MAIN and EXTRA
                             manualButtons = `
                                 <a href="${manuals[0]}" class="btn btn-manual" target="_blank">
                                     📖 VIEW MANUAL
                                 </a>
                                 <a href="${manuals[1]}" class="btn btn-manual" target="_blank">
                                     📎 EXTRA DOC
-                                </a>
-                            `;
+                                </a>`;
                         }
-                    
 
-                        // statusColor is still "green" or "red" from your logic
-                        var fill;
-                        if (statusColor === "green") {
-                            // viridis-like green
-                            fill = "#5ec962";   // OK
-                        } else {
-                            // plasma-inspired warm red/orange
-                            fill = "#f8765c";   // Problem
-                        }
-                        
+                        var fill = statusColor === "green" ? "#5ec962" : "#f8765c";
+
                         var marker = L.circle(coords, {
                             radius: 13,
                             fillColor: fill,
-                            color: "transparent",  // no outline
+                            color: "transparent",
                             weight: 0,
                             fillOpacity: 0.9,
-                            className: className   // still only blinks for "red" status
+                            className: className
                         }).addTo(map);
 
-    
                         marker.bindPopup(`
                             <div class="info-panel" style="width: 260px;">
                                 <h2 style="margin:0 0 10px 0;">${name}</h2>
                                 <p><b>Status:</b> 
-                                    <span class="status-badge" style="background:${statusColor}">
+                                    <span class="status-badge" style="background:${fill}">
                                         ${statusColor.toUpperCase()}
                                     </span>
                                 </p>
@@ -335,9 +313,9 @@
                 }
             });
         }
-    
+
         loadInstruments();
     </script>
-
 </body>
+
 </html>
