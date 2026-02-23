@@ -14,7 +14,6 @@
         body, html { margin: 0; padding: 0; height: 100%; font-family: sans-serif; }
         #map { height: 100vh; width: 100%; background: #fff; }
 
-        /* Blinking Animation */
         @keyframes blink {
             0%   { opacity: 1;   stroke-width: 3; }
             50%  { opacity: 0.3; stroke-width: 8; }
@@ -22,7 +21,6 @@
         }
         .blinking { animation: blink 1.5s infinite; }
 
-        /* Information Panel Styling */
         .info-panel { line-height: 1.4; color: #000; }
         .status-badge {
             padding: 4px 10px;
@@ -32,7 +30,6 @@
             font-size: 11px;
         }
 
-        /* Button Styling */
         .btn {
             display: block;
             text-align: center;
@@ -51,7 +48,6 @@
         .btn-status  { background: #212121; }
         .btn-ai      { background: #4a148c; }
 
-        /* Coordinate Tool Styling */
         #coord-tool {
             position: absolute;
             top: 10px;
@@ -73,19 +69,209 @@
     <script>
         // --- Map + background image ---
         var map = L.map('map', { crs: L.CRS.Simple, minZoom: -1 });
-        // adjust bounds to your SVG size
-        var bounds = [[0,0], [1080,1920]];
+        var bounds = [[0,0], [1080,1920]];      // match your SVG size
         L.imageOverlay('Cernak lab map.svg', bounds).addTo(map);
         map.fitBounds(bounds);
 
-        // Public CSV with ALL instruments (one row per instrument)
+        // Sheet with columns: Instrument, Status, Steward, Last_Calibrated, Next_PM_Due
         var sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQr85kdlDb92TZR_iUJTT3Plry6-0Bc4n3di7fTQvT1A6cMRcPcVe-TIA8WCqJRa15udjsAeG9jdoi0/pub?output=csv';
 
-        // Optional global defaults (used if a row leaves these blank)
-        var defaultFormUrl  = 'https://docs.google.com/forms/d/e/1FAIpQLSfvjJTJ1nLW-Eb3ZoEL_wix3h7kMm0SoqeJ5ndFaYjvagW-_Q/viewform?usp=dialog';
-        var defaultLogUrl   = 'https://docs.google.com/spreadsheets/d/10DsQ---R2owVXBIlj2bMnjH3kB05bFl69PxMVVlC4dU/edit#gid=1956041763';
-        var defaultEditUrl  = 'https://docs.google.com/spreadsheets/d/10DsQ---R2owVXBIlj2bMnjH3kB05bFl69PxMVVlC4dU/edit#gid=0';
-        var defaultManualUrl = 'PASTE_YOUR_GITHUB_MANUAL_URL_HERE';
+        // Hard‑coded links per instrument – replace with your real URLs
+        var linkConfig = {
+            "ThermoFisher 30C 0% CO2": {
+                manual:  "LINK_THERMO_30C_MANUAL",
+                form:    "LINK_THERMO_30C_FORM",
+                history: "LINK_THERMO_30C_HISTORY",
+                status:  "LINK_THERMO_30C_STATUS",
+                ai:      ""
+            },
+            "ThermoFisher 26C 5% CO2": {
+                manual:  "LINK_THERMO_26C_MANUAL",
+                form:    "LINK_THERMO_26C_FORM",
+                history: "LINK_THERMO_26C_HISTORY",
+                status:  "LINK_THERMO_26C_STATUS",
+                ai:      ""
+            },
+            "ThermoFisher TBD 1": {
+                manual:  "",
+                form:    "",
+                history: "",
+                status:  "",
+                ai:      ""
+            },
+            "ThermoFisher TBD 2": {
+                manual:  "",
+                form:    "",
+                history: "",
+                status:  "",
+                ai:      ""
+            },
+            "Sanyo 37C 5% CO2": {
+                manual:  "LINK_SANYO_MANUAL",
+                form:    "LINK_SANYO_FORM",
+                history: "LINK_SANYO_HISTORY",
+                status:  "LINK_SANYO_STATUS",
+                ai:      ""
+            },
+            "GCMS": {
+                manual:  "LINK_GCMS_MANUAL",
+                form:    "LINK_GCMS_FORM",
+                history: "LINK_GCMS_HISTORY",
+                status:  "LINK_GCMS_STATUS",
+                ai:      ""
+            },
+            "Biotage": {
+                manual:  "LINK_BIOTAGE_MANUAL",
+                form:    "LINK_BIOTAGE_FORM",
+                history: "LINK_BIOTAGE_HISTORY",
+                status:  "LINK_BIOTAGE_STATUS",
+                ai:      ""
+            },
+            "Lyophilizer": {
+                manual:  "LINK_LYO_MANUAL",
+                form:    "LINK_LYO_FORM",
+                history: "LINK_LYO_HISTORY",
+                status:  "LINK_LYO_STATUS",
+                ai:      ""
+            },
+            "Opentrons": {
+                manual:  "LINK_OPENTRONS_MANUAL",
+                form:    "LINK_OPENTRONS_FORM",
+                history: "LINK_OPENTRONS_HISTORY",
+                status:  "LINK_OPENTRONS_STATUS",
+                ai:      ""
+            },
+            "Platesealers": {
+                manual:  "LINK_PLATESEALERS_MANUAL",
+                form:    "LINK_PLATESEALERS_FORM",
+                history: "LINK_PLATESEALERS_HISTORY",
+                status:  "LINK_PLATESEALERS_STATUS",
+                ai:      ""
+            },
+            "-80": {
+                manual:  "LINK_MINUS80_MANUAL",
+                form:    "LINK_MINUS80_FORM",
+                history: "LINK_MINUS80_HISTORY",
+                status:  "LINK_MINUS80_STATUS",
+                ai:      ""
+            },
+            "ISCO": {
+                manual:  "LINK_ISCO_MANUAL",
+                form:    "LINK_ISCO_FORM",
+                history: "LINK_ISCO_HISTORY",
+                status:  "LINK_ISCO_STATUS",
+                ai:      ""
+            },
+            "CHEM GB": {
+                manual:  "LINK_CHEMGB_MANUAL",
+                form:    "LINK_CHEMGB_FORM",
+                history: "LINK_CHEMGB_HISTORY",
+                status:  "LINK_CHEMGB_STATUS",
+                ai:      ""
+            },
+            "Mosquitoes": {
+                manual:  "LINK_MOSQUITOES_MANUAL",
+                form:    "LINK_MOSQUITOES_FORM",
+                history: "LINK_MOSQUITOES_HISTORY",
+                status:  "LINK_MOSQUITOES_STATUS",
+                ai:      ""
+            },
+            "Genevec": {
+                manual:  "LINK_GENEVEC_MANUAL",
+                form:    "LINK_GENEVEC_FORM",
+                history: "LINK_GENEVEC_HISTORY",
+                status:  "LINK_GENEVEC_STATUS",
+                ai:      ""
+            },
+            "Huron": {
+                manual:  "LINK_HURON_MANUAL",
+                form:    "LINK_HURON_FORM",
+                history: "LINK_HURON_HISTORY",
+                status:  "LINK_HURON_STATUS",
+                ai:      ""
+            },
+            "SPS": {
+                manual:  "LINK_SPS_MANUAL",
+                form:    "LINK_SPS_FORM",
+                history: "LINK_SPS_HISTORY",
+                status:  "LINK_SPS_STATUS",
+                ai:      ""
+            },
+            "Chiller": {
+                manual:  "LINK_CHILLER_MANUAL",
+                form:    "LINK_CHILLER_FORM",
+                history: "LINK_CHILLER_HISTORY",
+                status:  "LINK_CHILLER_STATUS",
+                ai:      ""
+            },
+            "Nile": {
+                manual:  "LINK_NILE_MANUAL",
+                form:    "LINK_NILE_FORM",
+                history: "LINK_NILE_HISTORY",
+                status:  "LINK_NILE_STATUS",
+                ai:      ""
+            },
+            "Colorado": {
+                manual:  "LINK_COLORADO_MANUAL",
+                form:    "LINK_COLORADO_FORM",
+                history: "LINK_COLORADO_HISTORY",
+                status:  "LINK_COLORADO_STATUS",
+                ai:      ""
+            },
+            "NUB GB": {
+                manual:  "LINK_NUBGB_MANUAL",
+                form:    "LINK_NUBGB_FORM",
+                history: "LINK_NUBGB_HISTORY",
+                status:  "LINK_NUBGB_STATUS",
+                ai:      ""
+            },
+            "Huanghe": {
+                manual:  "LINK_HUANGHE_MANUAL",
+                form:    "LINK_HUANGHE_FORM",
+                history: "LINK_HUANGHE_HISTORY",
+                status:  "LINK_HUANGHE_STATUS",
+                ai:      ""
+            },
+            "Ganges": {
+                manual:  "LINK_GANGES_MANUAL",
+                form:    "LINK_GANGES_FORM",
+                history: "LINK_GANGES_HISTORY",
+                status:  "LINK_GANGES_STATUS",
+                ai:      ""
+            }
+        };
+
+        // Coordinates for each instrument – replace with real values from coord tool
+        var coordConfig = {
+            "ThermoFisher 30C 0% CO2": { lat: 100, lng: 200 },
+            "ThermoFisher 26C 5% CO2": { lat: 120, lng: 220 },
+            "ThermoFisher TBD 1":      { lat: 140, lng: 240 },
+            "ThermoFisher TBD 2":      { lat: 160, lng: 260 },
+            "Sanyo 37C 5% CO2":        { lat: 180, lng: 280 },
+
+            "GCMS":        { lat: 200, lng: 300 },
+            "Biotage":     { lat: 220, lng: 320 },
+            "Lyophilizer": { lat: 240, lng: 340 },
+            "Opentrons":   { lat: 260, lng: 360 },
+            "Platesealers":{ lat: 280, lng: 380 },
+            "-80":         { lat: 300, lng: 400 },
+
+            "ISCO":   { lat: 320, lng: 420 },
+            "CHEM GB":{ lat: 340, lng: 440 },
+
+            "Mosquitoes": { lat: 360, lng: 460 },
+            "Genevec":    { lat: 380, lng: 480 },
+            "Huron":      { lat: 400, lng: 500 },
+
+            "SPS":    { lat: 420, lng: 520 },
+            "Chiller":{ lat: 440, lng: 540 },
+
+            "Nile":     { lat: 460, lng: 560 },
+            "Colorado": { lat: 480, lng: 580 },
+            "NUB GB":   { lat: 500, lng: 600 },
+            "Huanghe":  { lat: 520, lng: 620 },
+            "Ganges":   { lat: 540, lng: 640 }
+        };
 
         // --- Coordinate Finder Logic ---
         var finderActive = false;
@@ -100,7 +286,7 @@
             if (finderActive) {
                 var lat = Math.round(e.latlng.lat);
                 var lng = Math.round(e.latlng.lng);
-                alert("COORDINATES FOUND:\n\nUse this in your sheet: " + lat + " , " + lng);
+                alert("COORDINATES FOUND:\n\nUse this in coordConfig: { lat: " + lat + ", lng: " + lng + " }");
                 console.log("Coords:", lat, lng);
             }
         });
@@ -112,27 +298,24 @@
                 header: true,
                 complete: function(results) {
                     results.data.forEach(function(row) {
-                        // Require coordinates
-                        if (!row.Lat || !row.Lng) return;
+                        if (!row.Instrument) return;
 
-                        var name    = (row.Instrument || 'Unknown').trim();
-                        var status  = (row.Status || 'grey').trim().toLowerCase();
-                        var steward = row.Steward || 'Unassigned';
+                        var name     = row.Instrument.trim();
+                        var status   = (row.Status || 'grey').trim().toLowerCase();
+                        var steward  = row.Steward || 'Unassigned';
+                        var lastCal  = row.Last_Calibrated || 'N/A';
+                        var nextPM   = row.Next_PM_Due || 'N/A';
 
-                        var lat = parseFloat(row.Lat);
-                        var lng = parseFloat(row.Lng);
+                        if (!coordConfig[name]) return;
+                        var lat = coordConfig[name].lat;
+                        var lng = coordConfig[name].lng;
 
-                        // Per‑instrument URLs with fallbacks
-                        var manualUrl = row.ManualURL || defaultManualUrl;
-                        var formUrl   = row.FormURL   || defaultFormUrl;
-                        var logUrl    = row.LogURL    || defaultLogUrl;
-                        var editUrl   = row.EditURL   || defaultEditUrl;
-
-                        var aiPrompt = "I am troubleshooting the " + name +
-                                       " in the Cernak Lab. Here are our logs...";
-                        var aiLink = (row.AILink && row.AILink.trim().length > 0)
-                            ? row.AILink
-                            : "https://gemini.google.com/app?prompt=" + encodeURIComponent(aiPrompt);
+                        var links = linkConfig[name] || {};
+                        var manualUrl  = links.manual  || "";
+                        var formUrl    = links.form    || "";
+                        var historyUrl = links.history || "";
+                        var statusUrl  = links.status  || "";
+                        var aiUrl      = links.ai      || "";
 
                         var marker = L.circle([lat, lng], {
                             radius: 20,
@@ -144,7 +327,7 @@
                         }).addTo(map);
 
                         var popupHtml = `
-                            <div class="info-panel" style="width: 260px;">
+                            <div class="info-panel" style="width: 280px;">
                                 <h2 style="margin:0 0 10px 0;">${name}</h2>
                                 <p><b>Status:</b>
                                    <span class="status-badge" style="background:${status}">
@@ -152,13 +335,15 @@
                                    </span>
                                 </p>
                                 <p><b>Steward:</b> ${steward}</p>
+                                <p><b>Last calibrated:</b> ${lastCal}</p>
+                                <p><b>Next PM due:</b> ${nextPM}</p>
                                 <hr>
-                                ${manualUrl ? `<a href="${manualUrl}" class="btn btn-manual" target="_blank">📖 VIEW MANUAL</a>` : ``}
-                                ${formUrl   ? `<a href="${formUrl}"   class="btn btn-form"   target="_blank">➕ ADD LOG ENTRY</a>` : ``}
-                                ${logUrl    ? `<a href="${logUrl}"    class="btn btn-history"target="_blank">📜 VIEW HISTORY LOG</a>` : ``}
+                                ${manualUrl  ? `<a href="${manualUrl}"  class="btn btn-manual"  target="_blank">📖 VIEW MANUAL</a>` : ``}
+                                ${formUrl    ? `<a href="${formUrl}"    class="btn btn-form"    target="_blank">➕ ADD LOG ENTRY</a>` : ``}
+                                ${historyUrl ? `<a href="${historyUrl}" class="btn btn-history" target="_blank">📜 VIEW HISTORY LOG</a>` : ``}
                                 <hr>
-                                ${editUrl   ? `<a href="${editUrl}"   class="btn btn-status" target="_blank">CHANGE RED/GREEN</a>` : ``}
-                                <a href="${aiLink}" class="btn btn-ai" target="_blank">🤖 ASK AI ASSISTANT</a>
+                                ${statusUrl  ? `<a href="${statusUrl}"  class="btn btn-status"  target="_blank">CHANGE RED/GREEN</a>` : ``}
+                                ${aiUrl      ? `<a href="${aiUrl}"      class="btn btn-ai"      target="_blank">🤖 ASK AI ASSISTANT</a>` : ``}
                             </div>
                         `;
                         marker.bindPopup(popupHtml);
