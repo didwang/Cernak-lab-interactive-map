@@ -36,6 +36,8 @@ Use the “ADD LOG ENTRY” button in any popup:
 
 The entry is stored in the shared log spreadsheet linked as “VIEW HISTORY LOG”.
 
+[link](https://docs.google.com/forms/d/1IW0UgO9KzMZygMGy-sQqZEHDQMj3bElSp8m6rElhUUs/edit) to edit the form if needed
+
 ## How to view instrument history
 1. Click the instrument on the map.
 2. Click 📜 VIEW HISTORY LOG.
