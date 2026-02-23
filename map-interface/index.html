@@ -236,23 +236,27 @@
                                 </a>
                             `;
                         }
-                        
-                        // lighter custom colors
+                    
+
+                        // statusColor is still "green" or "red" from your logic
                         var fill;
                         if (statusColor === "green") {
-                            fill = "#66bb6a";   // light green
+                            // viridis-like green
+                            fill = "#5ec962";   // OK
                         } else {
-                            fill = "#ef5350";   // light red
+                            // plasma-inspired warm red/orange
+                            fill = "#f8765c";   // Problem
                         }
                         
                         var marker = L.circle(coords, {
-                            radius: 12,
+                            radius: 20,
                             fillColor: fill,
-                            color: "transparent",   // no outline
-                            weight: 0,              // no border width
+                            color: "transparent",  // no outline
+                            weight: 0,
                             fillOpacity: 0.9,
-                            className: className
+                            className: className   // still only blinks for "red" status
                         }).addTo(map);
+
     
                         marker.bindPopup(`
                             <div class="info-panel" style="width: 260px;">
