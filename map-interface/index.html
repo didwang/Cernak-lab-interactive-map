@@ -76,7 +76,7 @@
             if (finderActive) {
                 var lat = Math.round(e.latlng.lat);
                 var lng = Math.round(e.latlng.lng);
-                alert("COORDINATES FOUND:\n\nUse this in your code: [" + lat + ", " + lng + "]");
+                alert("COORDINATES FOUND:\\n\\nUse this in your code: [" + lat + ", " + lng + "]");
                 console.log("Coords:", lat, lng);
             }
         });
@@ -117,8 +117,16 @@
                         if (!instrumentCoords[name]) return;
 
                         var coords = instrumentCoords[name];
-                        var statusColor = (row.Status || "gray").trim().toLowerCase();
+                        var statusRaw = (row.Status || "").trim().toLowerCase();
                         var steward = row.Steward || "Unassigned";
+                        var lastCal = row.Last_Calibrated || "N/A";
+                        var nextPM  = row.Next_PM_Due || "N/A";
+
+                        // Normalize status color; assume "green" / "red" (you can expand this)
+                        var statusColor = statusRaw === "green" ? "green" : "red";
+
+                        // Only red blinks: apply className only when not green
+                        var className = statusColor === "red" ? "blinking" : "";
 
                         var marker = L.circle(coords, {
                             radius: 20,
@@ -126,14 +134,20 @@
                             color: "#000",
                             weight: 3,
                             fillOpacity: 1,
-                            className: 'blinking'
+                            className: className
                         }).addTo(map);
 
                         marker.bindPopup(`
-                            <div class="info-panel" style="width: 250px;">
+                            <div class="info-panel" style="width: 260px;">
                                 <h2 style="margin:0 0 10px 0;">${name}</h2>
-                                <p><b>Status:</b> <span class="status-badge" style="background:${statusColor}">${statusColor.toUpperCase()}</span></p>
+                                <p><b>Status:</b> 
+                                    <span class="status-badge" style="background:${statusColor}">
+                                        ${statusColor.toUpperCase()}
+                                    </span>
+                                </p>
                                 <p><b>Steward:</b> ${steward}</p>
+                                <p><b>Last calibrated:</b> ${lastCal}</p>
+                                <p><b>Next PM due:</b> ${nextPM}</p>
                                 <hr>
                                 <a href="${manualUrl}" class="btn btn-manual" target="_blank">📖 VIEW MANUAL</a>
                                 <a href="${formUrl}" class="btn btn-form" target="_blank">➕ ADD LOG ENTRY</a>
