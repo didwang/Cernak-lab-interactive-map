@@ -8,6 +8,33 @@
     <style>
         body, html { margin: 0; padding: 0; height: 100%; font-family: sans-serif; }
         #map { height: 100vh; width: 100%; background: #fff; }
+
+        #coord-display {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            z-index: 1000;
+            background: rgba(255,255,255,0.9);
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: bold;
+            border: 1px solid #333;
+            pointer-events: none;
+        }
+        
+        #coord-tooltip {
+            position: absolute;
+            z-index: 1001;
+            background: rgba(0,0,0,0.75);
+            color: #fff;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 11px;
+            pointer-events: none;
+            display: none;
+        }
+
         
         /* Blinking Animation */
         @keyframes blink {
@@ -32,18 +59,13 @@
         .btn-history { background: #0d47a1; }
         .btn-status  { background: #212121; }
         .btn-ai      { background: #4a148c; }
-
-        /* Coordinate Tool Styling */
-        #coord-tool {
-            position: absolute; top: 10px; right: 10px; z-index: 1000;
-            background: white; padding: 10px; border: 2px solid #333; border-radius: 8px;
-            font-weight: bold; cursor: pointer;
         }
     </style>
 </head>
 <body>
-    <div id="coord-tool" onclick="toggleCoordFinder()">📍 Start Aligning Dots</div>
-    <div id="map"></div>
+    <div id="coord-display" style="display:none;">Lat: –, Lng: –</div>
+    <div id="coord-tooltip"></div>
+
 
         <script>
         // --- Map setup ---
@@ -72,22 +94,52 @@
             "I am troubleshooting an instrument in the Cernak Lab. Here are our logs..."
         );
     
-        // --- Coordinate Finder Logic ---
-        var finderActive = false;
-        function toggleCoordFinder() {
-            finderActive = !finderActive;
+        // --- Coordinate overlay & hover tooltip ---
+        var coordOverlayActive = false;
+        var coordDisplay = document.getElementById('coord-display');
+        var coordTooltip = document.getElementById('coord-tooltip');
+        
+        function toggleCoordOverlay() {
+            coordOverlayActive = !coordOverlayActive;
             var el = document.getElementById('coord-tool');
-            el.style.background = finderActive ? '#ffeb3b' : 'white';
-            el.innerText = finderActive ? 'Click Map to get Coords' : '📍 Start Aligning Dots';
-        }
-    
-        map.on('click', function(e) {
-            if (finderActive) {
-                var lat = Math.round(e.latlng.lat);
-                var lng = Math.round(e.latlng.lng);
-                alert("COORDINATES FOUND:\n\nUse this in your code: [" + lat + ", " + lng + "]");
-                console.log("Coords:", lat, lng);
+        
+            if (coordOverlayActive) {
+                el.style.background = '#ffeb3b';
+                el.innerText = 'Hide Coordinates';
+                coordDisplay.style.display = 'block';
+                coordTooltip.style.display = 'block';
+            } else {
+                el.style.background = 'white';
+                el.innerText = '📍 Show / Hide Coordinates';
+                coordDisplay.style.display = 'none';
+                coordTooltip.style.display = 'none';
             }
+        }
+        
+        // Update displayed coordinates and tooltip on mouse move
+        map.on('mousemove', function(e) {
+            if (!coordOverlayActive) return;
+        
+            var lat = Math.round(e.latlng.lat);
+            var lng = Math.round(e.latlng.lng);
+        
+            // bottom-left box
+            coordDisplay.textContent = 'Lat: ' + lat + ', Lng: ' + lng;
+        
+            // small tooltip near cursor
+            coordTooltip.style.left = (e.originalEvent.clientX + 12) + 'px';
+            coordTooltip.style.top  = (e.originalEvent.clientY + 12) + 'px';
+            coordTooltip.textContent = '[' + lat + ', ' + lng + ']';
+        });
+        
+        // Optional: hide tooltip when mouse leaves the map
+        map.on('mouseout', function() {
+            if (!coordOverlayActive) return;
+            coordTooltip.style.display = 'none';
+        });
+        map.on('mouseover', function() {
+            if (!coordOverlayActive) return;
+            coordTooltip.style.display = 'block';
         });
     
         // --- Instrument → Coordinate lookup ---
