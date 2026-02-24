@@ -35,7 +35,6 @@
             display: none;
         }
 
-        
         /* Blinking Animation */
         @keyframes blink {
             0%   { opacity: 1;   stroke-width: 3; }
@@ -59,7 +58,6 @@
         .btn-history { background: #0d47a1; }
         .btn-status  { background: #212121; }
         .btn-ai      { background: #4a148c; }
-        }
     </style>
 </head>
 <body>
@@ -94,7 +92,9 @@
         var editUrl    = 'https://docs.google.com/spreadsheets/d/10DsQ---R2owVXBIlj2bMnjH3kB05bFl69PxMVVlC4dU/edit#gid=0';
         var manualUrl  = 'https://drive.google.com';
 
-        var aiLink = "https://chatgpt.com/g/g-699bc2edc4788191b840d5f2860e2b5b-instrument-gpt";
+        // Two AI entry points
+        var aiLinkGettingStarted = "https://chatgpt.com/g/g-699bc2edc4788191b840d5f2860e2b5b-instrument-gpt";
+        var aiLinkDebug          = "https://chatgpt.com/g/g-699bc2edc4788191b840d5f2860e2b5b-instrument-gpt?mode=debug";
 
         // --- Coordinate overlay & hover tooltip ---
         var coordOverlayActive = false;
@@ -257,6 +257,7 @@
             ]
         };
 
+        // --- Load all instruments and add markers ---
         function loadInstruments() {
             Papa.parse(sheetUrl, {
                 download: true,
@@ -329,7 +330,8 @@
                                 <a href="${logViewUrl}" class="btn btn-history" target="_blank">📜 VIEW HISTORY LOG</a>
                                 <hr>
                                 <a href="${editUrl}" class="btn btn-status" target="_blank">CHANGE RED/GREEN</a>
-                                <a href="${aiLink}" class="btn btn-ai" target="_blank">🤖 ASK AI ASSISTANT</a>
+                                <a href="${aiLinkGettingStarted}" class="btn btn-ai" target="_blank">🤖 GET STARTED WITH AI</a>
+                                <a href="${aiLinkDebug}" class="btn btn-ai" target="_blank">🛠️ DEBUG WITH AI</a>
                             </div>
                         `);
                     });
@@ -340,5 +342,4 @@
         loadInstruments();
     </script>
 </body>
-
 </html>
