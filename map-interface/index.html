@@ -58,6 +58,24 @@
         .btn-history { background: #0d47a1; }
         .btn-status  { background: #212121; }
         .btn-ai      { background: #4a148c; }
+        
+        #github-link {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            z-index: 1000;
+            background: rgba(0,0,0,0.7);
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        #github-link a {
+            color: #ffffff;
+            text-decoration: none;
+        }
+
     </style>
 </head>
 <body>
@@ -73,6 +91,12 @@
                 border-radius:8px; font-weight:bold; cursor:pointer;">
         📍 Show / Hide Coordinates
     </div>
+    <div id="github-link">
+        <a href="https://github.com/didwang/Cernak-lab-interactive-map" target="_blank">
+            View source on GitHub
+        </a>
+    </div>
+
 
     <script>
         // --- Map setup ---
